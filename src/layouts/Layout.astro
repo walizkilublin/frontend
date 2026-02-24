@@ -15,12 +15,12 @@ interface Props {
 
 const { title, description, image } = Astro.props;
 
-// Zmienne dla GTM (pobierane bezpiecznie z pliku .env)
+// Zmienne środowiskowe i GTM
 const GTM_ID = import.meta.env.PUBLIC_GTM_ID || ''; 
+const PUBLIC_STRAPI_URL = import.meta.env.PUBLIC_STRAPI_URL || 'http://localhost:1337';
 const nonce = ''; // Obsługiwane przez Netlify Edge Functions
 
 // Pobieramy Global Settings i SEO ze Strapi v5
-// Używamy query do spopulowania komponentu SEO
 let globalSettings = null;
 try {
     globalSettings = await fetchApi<any>({
@@ -28,40 +28,77 @@ try {
         query: {
             populate: {
                 seo: {
-                    populate: '*',
+                    populate: {
+                        metaImage: '*',
+                        openGraph: {
+                            populate: ['ogImage']
+                        }
+                    },
                 },
             },
         },
     });
 } catch (error) {
-    console.error('Nie udało się pobrać Global Settings ze Strapi:', error);
+    // Nie przerywamy budowania, ale logujemy wyraźny błąd
+    console.error('⚠️ [SEO] Nie udało się pobrać Global Settings ze Strapi:', error);
 }
 
 const globalSeo = globalSettings?.data?.seo || {};
 
-// Fallback logic: props z podstrony (np. produktu) > globalne SEO > hardcoded fallback
+// Helper do obsługi ścieżek obrazków ze Strapi (zarówno absolutnych, jak i relatywnych)
+const getImageUrl = (url?: string) => {
+    if (!url) return undefined;
+    if (url.startsWith('http')) return url;
+    return `${PUBLIC_STRAPI_URL}${url}`;
+};
+
+// 1. Podstawowe Meta Tagi (Props > Global SEO > Fallback)
 const finalTitle = title || globalSeo?.metaTitle || 'WALIZKI LUBLIN | Hurtownia Bagażu';
 const finalDescription = description || globalSeo?.metaDescription || 'Zaopatrujemy liderów rynku detalicznego.';
-const finalImage = image || globalSeo?.metaImage?.url || '/default-og.jpg';
+const finalImage = getImageUrl(image || globalSeo?.metaImage?.url) || '/default-og.jpg';
+const metaViewport = globalSeo?.metaViewport || 'width=device-width, initial-scale=1.0';
+const metaRobots = globalSeo?.metaRobots || 'index, follow';
+const keywords = globalSeo?.keywords;
+const canonicalURL = globalSeo?.canonicalURL || Astro.url.href; // Domyślnie obecny, dokładny URL
+const structuredData = globalSeo?.structuredData;
+
+// 2. Tagi Open Graph (Komponent OG ze Strapi > Fallback na Podstawowe Meta Tagi)
+const ogTitle = globalSeo?.openGraph?.ogTitle || finalTitle;
+const ogDescription = globalSeo?.openGraph?.ogDescription || finalDescription;
+const ogImage = getImageUrl(globalSeo?.openGraph?.ogImage?.url) || finalImage;
+const ogUrl = globalSeo?.openGraph?.ogUrl || Astro.url.href;
+const ogType = globalSeo?.openGraph?.ogType || 'website';
 ---
 
 <!doctype html>
 <html lang="pl" class="scroll-smooth">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="viewport" content={metaViewport} />
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         
+        {/* ===== BAZOWE SEO ===== */}
         <title>{finalTitle}</title>
         <meta name="description" content={finalDescription} />
-        <meta property="og:title" content={finalTitle} />
-        <meta property="og:description" content={finalDescription} />
-        {/* Adres hosta Strapi - do ewentualnej poprawy na zmienną środowiskową przed deployem */}
-        <meta property="og:image" content={`http://localhost:1337${finalImage}`} />
+        <link rel="canonical" href={canonicalURL} />
+        <meta name="robots" content={metaRobots} />
+        {keywords && <meta name="keywords" content={keywords} />}
         
-		<link rel="preconnect" href="https://fonts.googleapis.com">
+        {/* ===== OPEN GRAPH ===== */}
+        <meta property="og:title" content={ogTitle} />
+        <meta property="og:description" content={ogDescription} />
+        <meta property="og:image" content={ogImage} />
+        <meta property="og:url" content={ogUrl} />
+        <meta property="og:type" content={ogType} />
+
+        {/* ===== STRUCTURED DATA (JSON-LD) ===== */}
+        {structuredData && (
+            <script type="application/ld+json" set:html={JSON.stringify(structuredData)} />
+        )}
+        
+        {/* ===== CZCIONKI ===== */}
+        <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        
         <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;800;900&display=swap" />
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;800;900&display=swap" media="print" onload="this.media='all'" />
         <noscript>
@@ -129,6 +166,6 @@ const finalImage = image || globalSeo?.metaImage?.url || '/default-og.jpg';
         <slot />
 
         {/* Baner ciasteczek ładujący się po stronie klienta (gadający z GTM) */}
-	<CookieConsent client:idle />
+        <CookieConsent client:idle />
     </body>
 </html>
