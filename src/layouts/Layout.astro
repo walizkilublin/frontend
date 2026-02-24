@@ -1,0 +1,129 @@
+---
+// Import globalnych styli Tailwind v4 (zawiera nasz grain overlay i kolory)
+import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
+import fetchApi from '../lib/strapi';
+
+// IMPORT BANERA CIASTECZEK
+import CookieConsent from '../components/CookieConsent.svelte';
+
+interface Props {
+    title?: string;
+    description?: string;
+    image?: string;
+}
+
+const { title, description, image } = Astro.props;
+
+// Zmienne dla GTM (pobierane bezpiecznie z pliku .env)
+const GTM_ID = import.meta.env.PUBLIC_GTM_ID || ''; 
+const nonce = ''; // Obsługiwane przez Netlify Edge Functions
+
+// Pobieramy Global Settings i SEO ze Strapi v5
+// Używamy query do spopulowania komponentu SEO
+let globalSettings = null;
+try {
+    globalSettings = await fetchApi<any>({
+        endpoint: 'global-setting',
+        query: {
+            populate: {
+                seo: {
+                    populate: '*',
+                },
+            },
+        },
+    });
+} catch (error) {
+    console.error('Nie udało się pobrać Global Settings ze Strapi:', error);
+}
+
+const globalSeo = globalSettings?.data?.seo || {};
+
+// Fallback logic: props z podstrony (np. produktu) > globalne SEO > hardcoded fallback
+const finalTitle = title || globalSeo?.metaTitle || 'WALIZKI LUBLIN | Hurtownia Bagażu';
+const finalDescription = description || globalSeo?.metaDescription || 'Zaopatrujemy liderów rynku detalicznego.';
+const finalImage = image || globalSeo?.metaImage?.url || '/default-og.jpg';
+---
+
+<!doctype html>
+<html lang="pl" class="scroll-smooth">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        
+        <title>{finalTitle}</title>
+        <meta name="description" content={finalDescription} />
+        <meta property="og:title" content={finalTitle} />
+        <meta property="og:description" content={finalDescription} />
+        {/* Adres hosta Strapi - do ewentualnej poprawy na zmienną środowiskową przed deployem */}
+        <meta property="og:image" content={`http://localhost:1337${finalImage}`} />
+        
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;800;900&display=swap" rel="stylesheet">
+
+        <ClientRouter />
+
+        {/* ===== GTM: Twój autorski, zoptymalizowany loader Consent Mode v2 ===== */}
+        {GTM_ID && (
+          <script is:inline nonce={nonce} define:vars={{ GTM_ID, nonce }}>
+            (function () {
+              // 1) dataLayer + stub gtag — MUSI powstać przed GTM
+              window.dataLayer = window.dataLayer || [];
+              window.gtag = window.gtag || function(){ window.dataLayer.push(arguments); };
+
+              // 2) Consent Mode v2 — default DENIED + mały bufor na CMP
+              window.gtag('consent', 'default', {
+                ad_storage: 'denied',
+                analytics_storage: 'denied',
+                ad_user_data: 'denied',
+                ad_personalization: 'denied',
+                wait_for_update: 500
+              });
+
+              // 3) Loader GTM z nonce (CSP)
+              (function(w,d,s,l,i,nc){
+                w[l]=w[l]||[];
+                w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
+                var f=d.getElementsByTagName(s)[0], j=d.createElement(s), dl=l!='dataLayer'?'&l='+l:'';
+                j.async = true;
+                j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+                if (nc) j.setAttribute('nonce', nc);
+                f.parentNode.insertBefore(j,f);
+              })(window,document,'script','dataLayer',GTM_ID,nonce);
+
+              // 4) Publiczne API dla banera
+              window.__CONSENT_APPLIED__ = false;
+              window.applyConsent = function (opts) {
+                if (window.__CONSENT_APPLIED__) return;
+                window.__CONSENT_APPLIED__ = true;
+
+                var update = {
+                  analytics_storage:     opts && opts.analytics          ? 'granted' : 'denied',
+                  ad_storage:            opts && opts.ads                ? 'granted' : 'denied',
+                  ad_user_data:          opts && opts.ad_user_data       ? 'granted' : 'denied',
+                  ad_personalization:    opts && opts.ad_personalization ? 'granted' : 'denied'
+                };
+                window.gtag('consent', 'update', update);
+              };
+            })();
+          </script>
+        )}
+        
+    </head>
+    <body class="bg-ghost-white text-vantablack font-sans antialiased min-h-screen relative selection:bg-signal-orange selection:text-white">
+        
+        {/* ===== GTM: No-Script Fallback (NA SAMYM POCZĄTKU BODY) ===== */}
+        {GTM_ID && (
+          <noscript>
+            <iframe src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`} height="0" width="0" style="display:none;visibility:hidden"></iframe>
+          </noscript>
+        )}
+
+        <slot />
+
+        {/* Baner ciasteczek ładujący się po stronie klienta (gadający z GTM) */}
+	<CookieConsent client:idle />
+    </body>
+</html>

@@ -1,17 +1,114 @@
 ---
+import Layout from '../layouts/Layout.astro';
+import Header from '../components/Header.astro';
+import Preloader from '../components/Preloader.svelte';
+import Hero from '../components/Hero.svelte';
+import TrustBar from '../components/TrustBar.svelte';
+import Catalog from '../components/Catalog.svelte';
+import Process from '../components/Process.svelte';
+import Faq from '../components/Faq.svelte';
+import ContactForm from '../components/ContactForm.svelte';
+import Footer from '../components/Footer.svelte';
+import fetchApi from '../lib/strapi';
 
+const STRAPI_URL = import.meta.env.PUBLIC_STRAPI_URL || 'http://localhost:1337';
+
+// 1. Pobieranie ustawień globalnych
+let globalSettings = null;
+try {
+  globalSettings = await fetchApi<any>({ endpoint: 'global-setting' });
+} catch (e) {
+  console.error('Błąd pobierania ustawień:', e);
+}
+
+const data = globalSettings?.data || {
+  phone_main: "+48 500 600 700",
+  hero_headline_line1: "HURTOWNIA BAGAŻU",
+  hero_headline_line2: "OD 2003",
+  hero_subheadline: "Zaopatrujemy liderów rynku detalicznego. Bezpieczeństwo. Terminowość. Marża.",
+  shipping_prepaid_pln: 18,
+  shipping_cod_pln: 26
+};
+
+// 2. MULTI-FETCH z rozdzielonymi schematami zapytań
+
+// Zapytanie DLA WALIZEK (mają warianty)
+const querySuitcases = {
+  populate: {
+    images: { fields: ['url', 'alternativeText'] },
+    variants: { populate: '*' },
+    colors: { populate: '*' }
+  },
+  sort: ['createdAt:desc']
+};
+
+// Zapytanie DLA TOREBEK I PORTFELI (nie mają wariantów, więc o nie NIE pytamy!)
+const queryBagsAndWallets = {
+  populate: {
+    images: { fields: ['url', 'alternativeText'] },
+    colors: { populate: '*' }
+  },
+  sort: ['createdAt:desc']
+};
+
+let productsData: any[] = [];
+
+try {
+  // Pobieramy dane używając dedykowanych zapytań
+  const [suitcasesRes, bagsRes, walletsRes] = await Promise.all([
+    fetchApi<any>({ endpoint: 'suitcases', query: querySuitcases }).catch(e => {
+      console.error('❌ Błąd WALIZEK:', e); return { data: [] };
+    }),
+    fetchApi<any>({ endpoint: 'bags', query: queryBagsAndWallets }).catch(e => {
+      console.error('❌ Błąd TOREBEK:', e); return { data: [] };
+    }),
+    fetchApi<any>({ endpoint: 'wallets', query: queryBagsAndWallets }).catch(e => {
+      console.error('❌ Błąd PORTFELI:', e); return { data: [] };
+    })
+  ]);
+
+  const suitcases = (suitcasesRes?.data || []).map((p: any) => ({ ...p, itemType: 'suitcase' }));
+  const bags = (bagsRes?.data || []).map((p: any) => ({ ...p, itemType: 'bag' }));
+  const wallets = (walletsRes?.data || []).map((p: any) => ({ ...p, itemType: 'wallet' }));
+
+  productsData = [...suitcases, ...bags, ...wallets];
+} catch (e) {
+  console.error('Błąd pobierania produktów:', e);
+}
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout>
+  <Preloader client:load />
+  <Header phone={data.phone_main} />
+
+  <main class="relative flex flex-col">
+    <Hero 
+      client:load 
+      line1={data.hero_headline_line1} 
+      line2={data.hero_headline_line2} 
+      subheadline={data.hero_subheadline} 
+    />
+    
+    <TrustBar client:visible />
+
+    <Catalog 
+      client:visible 
+      products={productsData} 
+      strapiUrl={STRAPI_URL}
+    />
+
+    <Process client:visible />
+
+    <Faq client:visible />
+
+    <section class="relative w-full bg-ghost-white pt-24 pb-24 z-20 border-t border-border-tech/30">
+      <div class="max-w-[1920px] mx-auto px-4 md:px-8">
+        <ContactForm client:visible />
+      </div>
+    </section>
+
+    <slot />
+    <Footer client:visible />
+
+  </main>
+</Layout>

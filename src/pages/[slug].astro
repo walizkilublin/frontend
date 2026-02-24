@@ -1,0 +1,65 @@
+---
+import Layout from '../layouts/Layout.astro';
+import fetchApi from '../lib/strapi';
+
+// Funkcja getStaticPaths mówi Astro, jakie podstrony ma wygenerować podczas budowania (hybrydowo)
+export async function getStaticPaths() {
+  let legalPages = { data: [] };
+  
+  try {
+    legalPages = await fetchApi<any>({
+      endpoint: 'legal-pages', // Upewnij się, że tak nazywa się Twój endpoint w Strapi
+      query: { populate: '*' },
+    });
+  } catch (error) {
+    console.error('Błąd pobierania stron prawnych:', error);
+  }
+
+  return legalPages.data.map((page: any) => ({
+    params: { slug: page.slug },
+    props: { page },
+  }));
+}
+
+const { page } = Astro.props;
+
+// Skoro mamy CKEditor 5, to zmienna page.content zawiera gotowy HTML!
+const contentHtml = page.content || '<p>Brak treści dokumentu.</p>';
+---
+
+<Layout title={`${page.title} | Hurtownia Bagażu B2B`} description={`Dokument techniczny: ${page.title}`}>
+  <main class="pt-32 pb-24 min-h-screen bg-ghost-white relative z-10">
+    <div class="max-w-[1000px] mx-auto px-4 md:px-8">
+      
+      <div class="mb-16 border-b border-border-tech pb-8">
+        <div class="flex items-center gap-4 mb-4">
+          <span class="w-3 h-3 bg-vantablack"></span>
+          <span class="text-xs font-mono font-bold tracking-widest text-cool-grey uppercase">Dokumentacja Prawna</span>
+        </div>
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-tighter text-vantablack leading-none">
+          {page.title}
+        </h1>
+      </div>
+      
+      <article 
+        class="prose prose-lg max-w-none 
+               prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tighter prose-headings:text-vantablack
+               prose-p:text-cool-grey prose-p:font-medium prose-p:leading-relaxed
+               prose-a:text-signal-orange prose-a:font-bold prose-a:no-underline hover:prose-a:underline
+               prose-strong:text-vantablack prose-strong:font-black
+               prose-ul:text-cool-grey prose-li:marker:text-signal-orange
+               prose-table:border-collapse prose-td:border prose-td:border-border-tech prose-th:border prose-th:border-border-tech prose-th:bg-surface"
+      >
+        <Fragment set:html={contentHtml} />
+      </article>
+
+      <div class="mt-20 pt-8 border-t border-border-tech">
+        <a href="/" class="inline-flex items-center gap-3 text-xs font-mono font-bold tracking-widest text-vantablack uppercase hover:text-signal-orange transition-colors duration-300">
+          <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+          Powrót do Centrali
+        </a>
+      </div>
+
+    </div>
+  </main>
+</Layout>

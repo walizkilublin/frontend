@@ -1,0 +1,44 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Błąd 404 | Połączenie Przerwane" description="Zasób nieodnaleziony w systemie B2B.">
+  <main class="min-h-screen bg-vantablack flex flex-col items-center justify-center relative overflow-hidden z-10 px-4">
+    
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAATCwzQ8oQKAAAACHRSTlMAMwBfCj/q2Z1h5wAAAI1JREFUOMutVUEOwyAMsyY/oN0+IH9Q37/L2k1I2kRppY4Dxg6yA01E0h+Kx3LwLp2F10h6j+Uj7oQ1r1HzHsvH3AlrXqPmPZaPuRPWvEbNeywfcyeseY2a91g+5k5Y8xo177F8zJ2w5jVq3mP5mDthzWvUvMfyMXfCmtcoeY/lY+6ENa9R8x7Lx9wJzX4B+D8v32k3vjQAAAAASUVORK5CYII='); background-repeat: repeat;"></div>
+
+    <div class="relative z-10 flex flex-col items-center text-center max-w-2xl mt-20">
+      
+      <div class="flex items-center gap-4 mb-8">
+        <span class="w-3 h-3 bg-signal-orange animate-ping"></span>
+        <span class="text-xs font-mono font-bold tracking-widest text-signal-orange uppercase">Błąd Krytyczny Nawigacji</span>
+      </div>
+      
+      <h1 class="text-8xl md:text-[180px] font-black text-ghost-white leading-none tracking-tighter mb-2 drop-shadow-2xl">
+        404
+      </h1>
+      
+      <h2 class="text-2xl md:text-4xl font-black uppercase tracking-tight text-ghost-white mb-8">
+        Zasób <span class="text-cool-grey">Nieodnaleziony</span>
+      </h2>
+      
+      <p class="text-sm font-mono text-cool-grey mb-12 max-w-md mx-auto border-l-2 border-signal-orange pl-4 text-left leading-relaxed bg-ghost-white/5 p-4">
+        Protokół został przerwany. Szukany dokument, indeks produktu lub sektor operacyjny nie istnieje w aktualnej strukturze Magazynu Centralnego.
+      </p>
+      
+      <a 
+        href="/" 
+        class="flex items-center justify-center gap-4 border-2 border-signal-orange bg-signal-orange text-white font-black uppercase tracking-widest text-sm px-8 py-5 hover:bg-ghost-white hover:border-ghost-white hover:text-signal-orange transition-all duration-300 group"
+      >
+        <svg class="w-5 h-5 rotate-180 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+        <span>Wznów Połączenie</span>
+      </a>
+
+    </div>
+
+    <div class="absolute bottom-8 left-8 text-[10px] font-mono text-cool-grey uppercase tracking-widest opacity-30 flex flex-col gap-1">
+      <span>SYS_ERR: 404_NOT_FOUND</span>
+      <span>TIMESTAMP: {new Date().toISOString().split('T')[0]}</span>
+    </div>
+  </main>
+</Layout>
