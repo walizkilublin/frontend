@@ -1,6 +1,6 @@
 <script>
   import { fade, fly } from 'svelte/transition';
-  import { createEventDispatcher, onMount } from 'svelte';
+  import { onMount } from 'svelte';
   import { tweened } from 'svelte/motion';
   import { cubicOut } from 'svelte/easing';
 
@@ -12,7 +12,7 @@
 
   $: itemType = product?.itemType || 'suitcase';
 
-  const dispatch = createEventDispatcher();
+  let closeLink; // Referencja do linku zamykającego (dla klawisza ESC)
   
   let activeImageIndex = 0;
   let activeVariantIndex = 0;
@@ -23,15 +23,9 @@
     return () => { document.body.style.overflow = ''; };
   });
 
-  function close() {
-    dispatch('close');
-    activeImageIndex = 0;
-    activeVariantIndex = 0;
-    isDescriptionExpanded = false;
-  }
-
+  // Inteligentna obsługa ESC - symuluje kliknięcie w link, by odpalić Astro View Transitions
   function handleKeydown(e) {
-    if (e.key === 'Escape') close();
+    if (e.key === 'Escape' && closeLink) closeLink.click();
   }
 
   $: images = product?.images || [];
@@ -68,23 +62,27 @@
 
 {#if product}
   <div class="fixed inset-x-0 bottom-0 top-20 z-[4900] flex items-center justify-center p-4 md:p-8">
-    <button 
-      class="absolute inset-0 w-full h-full bg-vantablack/60 backdrop-blur-md cursor-default border-none"
-      on:click={close} transition:fade={{ duration: 300 }} aria-label="Zamknij tło" tabindex="-1"
-    ></button>
+    
+    <a 
+      href="/"
+      bind:this={closeLink}
+      class="absolute inset-0 w-full h-full bg-vantablack/60 backdrop-blur-md cursor-default border-none block"
+      transition:fade={{ duration: 300 }} aria-label="Zamknij tło" tabindex="-1"
+    ></a>
 
     <div 
       role="dialog" aria-modal="true" aria-labelledby="modal-title"
       class="relative z-10 bg-ghost-white w-full max-w-6xl max-h-full flex flex-col md:flex-row border border-vantablack/20 shadow-[0_20px_60px_rgba(0,0,0,0.6)] overflow-hidden"
       transition:fly={{ y: 50, duration: 400, opacity: 0 }}
     >
-      <button 
-        on:click={close}
+      
+      <a 
+        href="/"
         aria-label="Zamknij specyfikację"
         class="absolute top-0 right-0 z-50 w-12 h-12 bg-vantablack text-ghost-white flex items-center justify-center hover:bg-signal-orange transition-colors md:w-16 md:h-16"
       >
         <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-      </button>
+      </a>
 
       <div class="w-full md:w-1/2 bg-[#E8EAEF] flex flex-col relative border-b md:border-b-0 md:border-r border-border-tech h-64 md:h-auto shrink-0">
         <div class="relative flex-1 p-8 flex items-center justify-center">

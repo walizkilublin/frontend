@@ -1,13 +1,11 @@
 <script>
   import { flip } from 'svelte/animate';
   import { fade, scale } from 'svelte/transition';
-  import SpecModal from './SpecModal.svelte';
 
   export let products = [];
   export let strapiUrl = "http://localhost:1337";
 
   let activeCategory = 'ALL';
-  let selectedProduct = null;
 
   // Filtr łączy typ produktu z wariantami twardości walizek
   const categories = [
@@ -68,10 +66,6 @@
     return `OD ${minPrice} PLN`;
   }
 
-  function openSpec(product) {
-    selectedProduct = product;
-  }
-
   // Funkcja generująca w 100% unikalny klucz dla bloku {#each}
   function getUniqueId(product, index) {
     return `${product.itemType}-${product.documentId || product.id || index}-${product.model_sku || 'no-sku'}`;
@@ -80,7 +74,6 @@
 
 <section id="katalog" class="relative w-full bg-ghost-white py-24 min-h-screen z-30">
   <div class="max-w-[1920px] mx-auto px-4 md:px-8">
-    
     
    <div class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8 md:gap-6 border-b border-border-tech/50 pb-8">
       
@@ -116,15 +109,12 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {#each filteredProducts as product, index (getUniqueId(product, index))}
-        <div 
+        <a 
+          href={`/produkt/${product.slug || product.documentId}`}
           animate:flip={{ duration: 400 }} 
           in:scale={{ duration: 300, start: 0.95 }}
           out:fade={{ duration: 200 }}
-          on:click={() => openSpec(product)}
-          on:keydown={(e) => e.key === 'Enter' && openSpec(product)}
-          role="button"
-          tabindex="0"
-          class="group relative bg-surface border border-border-tech hover:border-vantablack transition-colors duration-300 overflow-hidden flex flex-col cursor-pointer"
+          class="group relative bg-surface border border-border-tech hover:border-vantablack transition-colors duration-300 overflow-hidden flex flex-col cursor-pointer block"
         >
           <div class="absolute top-4 inset-x-4 flex justify-between items-start z-10 pointer-events-none">
             <div class="flex flex-col gap-1">
@@ -175,7 +165,7 @@
             </div>
           </div>
 
-        </div>
+        </a>
       {/each}
     </div>
 
@@ -187,13 +177,4 @@
     {/if}
 
   </div>
-
-  {#if selectedProduct}
-    <SpecModal 
-      product={selectedProduct} 
-      strapiUrl={strapiUrl} 
-      on:close={() => selectedProduct = null} 
-    />
-  {/if}
-
 </section>

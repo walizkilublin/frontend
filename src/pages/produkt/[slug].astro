@@ -1,0 +1,144 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Header from '../../components/Header.astro';
+import Hero from '../../components/Hero.svelte';
+import TrustBar from '../../components/TrustBar.svelte';
+import Catalog from '../../components/Catalog.svelte';
+import Process from '../../components/Process.svelte';
+import Faq from '../../components/Faq.svelte';
+import ContactForm from '../../components/ContactForm.svelte';
+import Footer from '../../components/Footer.svelte';
+import SpecModal from '../../components/SpecModal.svelte';
+import fetchApi from '../../lib/strapi';
+
+// --- GENEROWANIE ŚCIEŻEK (SSG) ---
+// Funkcja getStaticPaths pobiera wszystkie produkty i generuje z nich setki superszybkich podstron
+export async function getStaticPaths() {
+  
+  // 1. Pobieramy ustawienia globalne (dla nagłówków, stopek itp.)
+  let globalSettings = null;
+  try {
+    globalSettings = await fetchApi<any>({ endpoint: 'global-setting' });
+  } catch (e) {
+    console.error('Błąd pobierania ustawień w getStaticPaths:', e);
+  }
+  
+  const globalData = globalSettings?.data || {
+    phone_main: "+48 500 600 700",
+    hero_headline_line1: "HURTOWNIA BAGAŻU",
+    hero_headline_line2: "OD 2003",
+    hero_subheadline: "Zaopatrujemy liderów rynku detalicznego. Bezpieczeństwo. Terminowość. Marża.",
+    shipping_prepaid_pln: 18,
+    shipping_cod_pln: 26
+  };
+
+  // 2. POTĘŻNE ZAPYTANIA: Pobieramy produkty WRAZ Z ICH UNIKALNYM SEO!
+  const querySuitcases = {
+    populate: {
+      seo: { populate: '*' }, // Wyciągamy SEO produktu
+      images: { fields: ['url', 'alternativeText'] },
+      variants: { populate: '*' },
+      colors: { populate: '*' }
+    }
+  };
+  
+  const queryBagsAndWallets = {
+    populate: {
+      seo: { populate: '*' }, // Wyciągamy SEO produktu
+      images: { fields: ['url', 'alternativeText'] },
+      colors: { populate: '*' }
+    }
+  };
+
+  let suitcasesRes = { data: [] };
+  let bagsRes = { data: [] };
+  let walletsRes = { data: [] };
+
+  try {
+    [suitcasesRes, bagsRes, walletsRes] = await Promise.all([
+      fetchApi<any>({ endpoint: 'suitcases', query: querySuitcases }).catch(() => ({ data: [] })),
+      fetchApi<any>({ endpoint: 'bags', query: queryBagsAndWallets }).catch(() => ({ data: [] })),
+      fetchApi<any>({ endpoint: 'wallets', query: queryBagsAndWallets }).catch(() => ({ data: [] }))
+    ]);
+  } catch(e) {}
+
+  const suitcases = (suitcasesRes.data || []).map((p: any) => ({ ...p, itemType: 'suitcase' }));
+  const bags = (bagsRes.data || []).map((p: any) => ({ ...p, itemType: 'bag' }));
+  const wallets = (walletsRes.data || []).map((p: any) => ({ ...p, itemType: 'wallet' }));
+
+  const allProducts = [...suitcases, ...bags, ...wallets];
+
+  // 3. Zwracamy tablicę ścieżek URL i przekazujemy dane jako "props"
+  return allProducts.map((product) => {
+    // Używamy slug, a jak ktoś zapomniał go wpisać w Strapi - awaryjnie documentId
+    const slug = product.slug || product.documentId;
+    
+    return {
+      params: { slug },
+      props: {
+        product,       // Dane TEGO KONKRETNEGO produktu (dla Modala)
+        allProducts,   // Dane WSZYSTKICH produktów (dla tła / Katalogu)
+        globalData     // Dane globalne
+      }
+    };
+  });
+}
+
+// --- RENDEROWANIE WIDOKU KLIENCKIEGO ---
+const { product, allProducts, globalData } = Astro.props;
+const STRAPI_URL = import.meta.env.PUBLIC_STRAPI_URL || 'http://localhost:1337';
+
+// 4. WSTRZYKUJEMY SEO: Pobieramy dane z komponentu "seo" z produktu i mapujemy je dla Layoutu
+const productSeo = product?.seo || {};
+// Jeśli redaktor nie wpisał Title, dajemy domyślnie nazwę produktu
+const finalTitle = productSeo.metaTitle || product.name; 
+// Jeśli redaktor nie wpisał obrazka SEO, bierzemy pierwsze zdjęcie produktu!
+const finalImage = productSeo.metaImage?.url || (product.images && product.images[0]?.url);
+---
+
+{/* Przekazujemy dedykowane parametry SEO. Nasz zoptymalizowany Layout zrobi resztę! */}
+<Layout title={finalTitle} description={productSeo.metaDescription} image={finalImage}>
+  
+  {/* Brak preloadera - dzięki temu popup otwiera się natychmiast, bez białego ekranu */}
+  <Header phone={globalData.phone_main} />
+
+  <main class="relative flex flex-col">
+    {/* TŁO STRONY (Wygląda identycznie jak index.astro) */}
+    <Hero 
+      client:load 
+      line1={globalData.hero_headline_line1} 
+      line2={globalData.hero_headline_line2} 
+      subheadline={globalData.hero_subheadline} 
+    />
+    
+    <TrustBar client:visible />
+
+    <Catalog 
+      client:visible 
+      products={allProducts} 
+      strapiUrl={STRAPI_URL}
+    />
+
+    <Process client:visible />
+
+    <Faq client:visible />
+
+    <section class="relative w-full bg-ghost-white pt-24 pb-24 z-20 border-t border-border-tech/30">
+      <div class="max-w-[1920px] mx-auto px-4 md:px-8">
+        <ContactForm client:visible />
+      </div>
+    </section>
+
+    <Footer client:visible />
+
+    {/* GŁÓWNY PUNKT PROGRAMU: SpecModal jest na wierzchu z danymi produktu! */}
+    <SpecModal 
+      client:load 
+      product={product} 
+      strapiUrl={STRAPI_URL} 
+      phone={globalData.phone_main}
+      shippingPrepaid={globalData.shipping_prepaid_pln}
+      shippingCod={globalData.shipping_cod_pln}
+    />
+  </main>
+</Layout>
