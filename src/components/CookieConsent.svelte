@@ -132,7 +132,8 @@
   onMount(() => {
     const existing = parseExisting();
     if (!existing || existing.rev !== REVISION) {
-      setTimeout(() => { isVisible = true; }, 800);
+      // USUŃ setTimeout! Zmień na natychmiastowe pokazanie:
+      isVisible = true;
     } else {
       const cats = existing.categories || [];
       cookiePreferences = {
