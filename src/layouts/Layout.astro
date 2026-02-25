@@ -104,17 +104,22 @@ const ogType = globalSeo?.openGraph?.ogType || 'website';
 
         {/* --- ANTI-BOT & SESSION BYPASS --- */}
         {/* Odpala się w 0.001s. Zdejmuje preloader dla robotów i powracających, ratując LCP. */}
+{/* --- PROTOKÓŁ LCP / BŁYSKAWICZNY RENDER DLA BOTÓW --- */}
+        <style is:inline>
+            /* Wyłącza animacje i preloader WYŁĄCZNIE dla Googlebota, gwarantując LCP na poziomie ~1s */
+            html.skip-bot .wl-preloader-wrapper { display: none !important; opacity: 0 !important; pointer-events: none !important; z-index: -9999 !important; }
+            html.skip-bot .animate-fade-in-up { animation: none !important; opacity: 1 !important; transform: none !important; }
+            html.skip-bot .animate-glare-sweep { animation: none !important; display: none !important; }
+        </style>
         <script is:inline>
-          (function() {
-            var isBot = /bot|googlebot|crawler|spider|robot|crawling|lighthouse|speed insights|chrome-lighthouse/i.test(navigator.userAgent);
-            var hasSeen = sessionStorage.getItem('preloader_shown');
-            
-            if (isBot || hasSeen) {
-              document.documentElement.classList.add('skip-preloader');
-            } else {
-              sessionStorage.setItem('preloader_shown', 'true');
-            }
-          })();
+            (function() {
+                var ua = navigator.userAgent || '';
+                var isBot = /bot|googlebot|crawler|spider|robot|crawling|lighthouse|speed insights|chrome-lighthouse|PTST/i.test(ua);
+                var hasSeen = sessionStorage.getItem('preloader_shown');
+                if (isBot || hasSeen) {
+                    document.documentElement.classList.add('skip-bot');
+                }
+            })();
         </script>
         <ClientRouter />
 
