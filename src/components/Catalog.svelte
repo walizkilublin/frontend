@@ -111,7 +111,6 @@
       {#each filteredProducts as product, index (getUniqueId(product, index))}
         <a 
           href={`/produkt/${product.slug || product.documentId}#katalog`}
-          data-astro-prefetch="load"
           animate:flip={{ duration: 400 }}
           in:scale={{ duration: 300, start: 0.95 }}
           out:fade={{ duration: 200 }}
