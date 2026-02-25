@@ -12,7 +12,7 @@
 
   $: itemType = product?.itemType || 'suitcase';
 
-  let closeLink; // Referencja do linku zamykającego (dla klawisza ESC)
+  let closeLink; 
   
   let activeImageIndex = 0;
   let activeVariantIndex = 0;
@@ -23,19 +23,31 @@
     return () => { document.body.style.overflow = ''; };
   });
 
-  // Inteligentna obsługa ESC - symuluje kliknięcie w link, by odpalić Astro View Transitions
+  // --- INTELIGENTNE ZAMYKANIE MODALA ---
+  function handleClose(e) {
+    e.preventDefault(); // Zatrzymujemy domyślne przejście linku
+    
+    // Astro View Transitions dodaje właściwość "index" do historii przeglądarki.
+    // Jeśli index > 0, wiemy na 100%, że użytkownik wędrował po naszej stronie.
+    if (window.history.state && typeof window.history.state.index === 'number' && window.history.state.index > 0) {
+      window.history.back(); // Cofa płynnie do idealnej pozycji scrolla w katalogu!
+    } else {
+      // Jeśli wszedł z bezpośredniego linku (index = 0 lub brak), wrzucamy go do katalogu
+      window.location.href = '/#katalog';
+    }
+  }
+
   function handleKeydown(e) {
     if (e.key === 'Escape' && closeLink) closeLink.click();
   }
 
+  // Reszta kodu pozostaje bez zmian...
   $: images = product?.images || [];
   $: activeImageUrl = images.length > 0 ? `${strapiUrl}${images[activeImageIndex].url}` : null;
   $: colors = product?.colors || [];
-  
   $: variants = product?.variants || [];
   $: activeVariant = variants[activeVariantIndex] || {};
 
-  // --- SILNIK FIZYCZNY ---
   const animH = tweened(0, { duration: 600, easing: cubicOut });
   const animW = tweened(0, { duration: 600, easing: cubicOut });
   const animD = tweened(0, { duration: 600, easing: cubicOut });
@@ -52,7 +64,6 @@
     }
   }
 
-  // Helper do wyświetlania tekstu wymiarów (używany w gridzie parametrów)
   $: dimensionsText = (itemType === 'suitcase' && activeVariant) 
     ? `${activeVariant.height_cm || 0} x ${activeVariant.width_cm || 0} x ${activeVariant.depth_cm || 0} cm` 
     : `${product?.height_cm || 0} x ${product?.width_cm || 0} x ${product?.depth_cm || 0} cm`;
@@ -64,7 +75,8 @@
   <div class="fixed inset-x-0 bottom-0 top-20 z-[4900] flex items-center justify-center p-4 md:p-8">
     
     <a 
-      href="/"
+      href="/#katalog"
+      on:click={handleClose}
       bind:this={closeLink}
       class="absolute inset-0 w-full h-full bg-vantablack/60 backdrop-blur-md cursor-default border-none block"
       transition:fade={{ duration: 300 }} aria-label="Zamknij tło" tabindex="-1"
@@ -77,7 +89,8 @@
     >
       
       <a 
-        href="/"
+        href="/#katalog"
+        on:click={handleClose}
         aria-label="Zamknij specyfikację"
         class="absolute top-0 right-0 z-50 w-12 h-12 bg-vantablack text-ghost-white flex items-center justify-center hover:bg-signal-orange transition-colors md:w-16 md:h-16"
       >
