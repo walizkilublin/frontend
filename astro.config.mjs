@@ -13,7 +13,7 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://walizki-lublin.pl',
 
-  // prefetch: true,
+  prefetch: true,
 
   build: {
     inlineStylesheets: 'always'
