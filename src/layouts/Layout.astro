@@ -4,8 +4,9 @@ import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import fetchApi from '../lib/strapi';
 
-// IMPORT BANERA CIASTECZEK
+// IMPORT BANERA CIASTECZEK ORAZ PRELOADERA
 import CookieConsent from '../components/CookieConsent.svelte';
+import Preloader from '../components/Preloader.svelte';
 
 interface Props {
     title?: string;
@@ -157,6 +158,9 @@ const ogType = globalSeo?.openGraph?.ogType || 'website';
             <iframe src={`https://www.googletagmanager.com/ns.html?id=${GTM_ID}`} height="0" width="0" style="display:none;visibility:hidden"></iframe>
           </noscript>
         )}
+
+        {/* Globalny Preloader działający tylko przy hard-reload, zachowujący stan przy przejściach Astro */}
+        <Preloader client:load transition:persist="global-preloader" />
 
         <slot />
 
