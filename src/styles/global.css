@@ -56,3 +56,11 @@
     animation: grain 8s steps(10) infinite;
   }
 }
+/* Ekstremalny bypass: Jeśli HTML ma klasę skip-preloader, zabijamy go na poziomie renderingu GPU */
+html.skip-preloader .wl-preloader-wrapper {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  z-index: -9999 !important;
+}

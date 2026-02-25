@@ -27,9 +27,13 @@ export default defineConfig({
       rollupOptions: {
         output: {
           manualChunks: (id) => {
-            // Grupuje wszystkie pliki wbudowane Svelte w jeden chunk
+            // 1. Rdzeń Svelte do jednego pliku
             if (id.includes('node_modules/svelte')) {
               return 'svelte-runtime';
+            }
+            // 2. MAGIA: Wszystkie Twoje komponenty (Hero, Preloader, Catalog) do DRUGIEGO pliku!
+            if (id.includes('/src/components/')) {
+              return 'app-components';
             }
           }
         }

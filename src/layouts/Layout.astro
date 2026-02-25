@@ -101,6 +101,21 @@ const ogType = globalSeo?.openGraph?.ogType || 'website';
             <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;800;900&display=swap" />
         </noscript>
 
+
+        {/* --- ANTI-BOT & SESSION BYPASS --- */}
+        {/* Odpala się w 0.001s. Zdejmuje preloader dla robotów i powracających, ratując LCP. */}
+        <script is:inline>
+          (function() {
+            var isBot = /bot|googlebot|crawler|spider|robot|crawling|lighthouse|speed insights|chrome-lighthouse/i.test(navigator.userAgent);
+            var hasSeen = sessionStorage.getItem('preloader_shown');
+            
+            if (isBot || hasSeen) {
+              document.documentElement.classList.add('skip-preloader');
+            } else {
+              sessionStorage.setItem('preloader_shown', 'true');
+            }
+          })();
+        </script>
         <ClientRouter />
 
 

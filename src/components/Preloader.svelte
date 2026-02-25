@@ -32,8 +32,7 @@
 </script>
 
 {#if isVisible}
-  <div class="fixed inset-0 z-[9999] flex overflow-hidden pointer-events-auto">
-    
+  <div class="wl-preloader-wrapper fixed inset-0 z-[9999] flex overflow-hidden pointer-events-auto">    
     <div 
       class="w-1/2 h-full bg-ghost-white transition-transform duration-[600ms] ease-[cubic-bezier(0.85,0,0.15,1)] relative flex items-center justify-end overflow-hidden"
       class:-translate-x-full={isUnlocked}
