@@ -18,7 +18,19 @@ export default defineConfig({
   integrations: [svelte(), sitemap()],
 
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: (id) => {
+            // Grupuje wszystkie pliki wbudowane Svelte w jeden chunk
+            if (id.includes('node_modules/svelte')) {
+              return 'svelte-runtime';
+            }
+          }
+        }
+      }
+    }
   },
 
   adapter: netlify()

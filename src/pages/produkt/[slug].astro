@@ -106,7 +106,7 @@ const finalImage = productSeo.metaImage?.url || (product.images && product.image
   <main class="relative flex flex-col">
     {/* TŁO STRONY (Wygląda identycznie jak index.astro) */}
     <Hero 
-      client:load 
+      client:idle
       line1={globalData.hero_headline_line1} 
       line2={globalData.hero_headline_line2} 
       subheadline={globalData.hero_subheadline} 
@@ -134,7 +134,7 @@ const finalImage = productSeo.metaImage?.url || (product.images && product.image
 
     {/* GŁÓWNY PUNKT PROGRAMU: SpecModal jest na wierzchu z danymi produktu! */}
     <SpecModal 
-      client:load 
+      client:idle
       product={product} 
       strapiUrl={STRAPI_URL} 
       phone={globalData.phone_main}
