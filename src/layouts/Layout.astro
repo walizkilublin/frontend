@@ -28,18 +28,13 @@ try {
         query: {
             populate: {
                 seo: {
-                    populate: {
-                        metaImage: '*',
-                        openGraph: {
-                            populate: ['ogImage']
-                        }
-                    },
+                    // W Strapi najbezpieczniej głęboko populować komponenty i media używając notacji tablicowej z kropkami:
+                    populate: ['metaImage', 'openGraph.ogImage']
                 },
             },
         },
     });
 } catch (error) {
-    // Nie przerywamy budowania, ale logujemy wyraźny błąd
     console.error('⚠️ [SEO] Nie udało się pobrać Global Settings ze Strapi:', error);
 }
 
