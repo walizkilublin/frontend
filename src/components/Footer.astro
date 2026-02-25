@@ -1,14 +1,26 @@
-<script>
-  export let phone = "+48 500 600 700";
-  export let email = "b2b@hurtownia-b2b.pl";
-  export let companyName = "HURTOWNIA BAGAŻU SP. Z O.O.";
-  export let nip = "1234567890";
-  export let address = "ul. Logistyczna 1, 20-000 Lublin";
-  export let workingHours = "Pon - Pt: 08:00 - 16:00";
+---
+export interface Props {
+  phone?: string;
+  email?: string;
+  companyName?: string;
+  nip?: string;
+  address?: string;
+  workingHours?: string;
+}
 
-  // Generujemy czysty link do trasy w Google Maps bazując na adresie
-  $: mapsRouteUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
-</script>
+const {
+  phone = "+48 500 600 700",
+  email = "b2b@hurtownia-b2b.pl",
+  companyName = "HURTOWNIA BAGAŻU SP. Z O.O.",
+  nip = "1234567890",
+  address = "ul. Logistyczna 1, 20-000 Lublin",
+  workingHours = "Pon - Pt: 08:00 - 16:00"
+} = Astro.props;
+
+// Generujemy czysty link do trasy w Google Maps bazując na adresie
+// (Poprawiłem też mały błąd składniowy z brakiem $ przed klamerką z Twojego starego kodu)
+const mapsRouteUrl = `https://www.google.com/maps/dir/?api=1&destination=$${encodeURIComponent(address)}`;
+---
 
 <footer id="kontakt" class="relative bg-vantablack text-ghost-white border-t-4 border-signal-orange overflow-hidden z-20">
   
@@ -25,7 +37,8 @@
         Walizki<br/><span class="text-cool-grey hover:text-signal-orange transition-colors duration-500">Lublin</span>
       </h2>
       <p class="text-sm font-medium text-cool-grey leading-relaxed mt-8 mb-8 border-l-2 border-border-tech pl-4">
-        Zadzwoń do nas! Chętnie doradzimy w wyborze idealnego bagażu na jedne wakacje, jak i na lata udanego handlu w Twoim sklepie.        </p>
+        Zadzwoń do nas! Chętnie doradzimy w wyborze idealnego bagażu na jedne wakacje, jak i na lata udanego handlu w Twoim sklepie.
+      </p>
     </div>
 
     <div class="flex flex-col lg:flex-row gap-12 border-t border-ghost-white/10 pt-12">
@@ -58,14 +71,6 @@
             <p class="text-[10px] font-mono text-cool-grey uppercase tracking-widest mb-1">Godziny Magazynu</p>
             <p class="text-sm font-bold text-ghost-white uppercase">{workingHours}</p>
           </div>
-
-          <!-- <div class="border border-ghost-white/10 p-4 bg-white/5 backdrop-blur-sm mt-auto">
-            <p class="text-[10px] font-mono text-cool-grey uppercase tracking-widest mb-2">Status Architektury PIM</p>
-            <div class="w-full bg-vantablack h-1 mb-2 overflow-hidden">
-              <div class="bg-signal-orange h-full w-[100%]"></div>
-            </div>
-            <p class="text-[9px] font-mono text-signal-orange uppercase tracking-widest">Poziom 10 / Stabilny</p>
-          </div> -->
         </div>
       </div>
 

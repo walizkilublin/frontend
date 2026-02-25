@@ -6,7 +6,7 @@ import fetchApi from '../lib/strapi';
 
 // IMPORT BANERA CIASTECZEK ORAZ PRELOADERA
 import CookieConsent from '../components/CookieConsent.svelte';
-import Preloader from '../components/Preloader.svelte';
+import Preloader from '../components/Preloader.astro';
 
 interface Props {
     title?: string;
@@ -206,8 +206,7 @@ const ogType = globalSeo?.openGraph?.ogType || 'website';
         )}
 
         {/* Globalny Preloader działający tylko przy hard-reload, zachowujący stan przy przejściach Astro */}
-        <Preloader client:load transition:persist="global-preloader" />
-
+        <Preloader transition:persist="global-preloader" />
         <slot />
 
         {/* Baner ciasteczek ładujący się po stronie klienta (gadający z GTM) */}

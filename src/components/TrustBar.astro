@@ -1,0 +1,111 @@
+---
+// Zmiana z .svelte na .astro - zero narzutu JS, natywny HTML
+---
+
+<section 
+  id="trust-bar" 
+  class="wl-trust-bar relative w-full bg-ghost-white border-y-2 border-vantablack overflow-hidden z-20"
+>
+  <div class="trust-gradient absolute inset-0 bg-gradient-to-r from-transparent via-signal-orange/5 to-transparent -translate-x-full transition-transform duration-[2000ms] ease-out"></div>
+
+  <div class="max-w-[1920px] mx-auto">
+    <div class="grid grid-cols-1 md:grid-cols-3 divide-y-2 md:divide-y-0 md:divide-x-2 divide-vantablack">
+      
+      <div class="flex flex-col items-center justify-center py-12 md:py-16 relative group">
+        <span class="absolute top-4 left-4 text-[10px] font-mono text-cool-grey uppercase tracking-widest">DT-01</span>
+        <div class="text-6xl lg:text-8xl font-black text-vantablack tabular-nums tracking-tighter flex items-end leading-none">
+          <span id="trust-years">0</span><span class="text-3xl lg:text-5xl mb-1 lg:mb-2 text-signal-orange">+</span>
+        </div>
+        <div class="mt-4 text-xs lg:text-sm font-bold uppercase tracking-[0.2em] text-cool-grey">
+          Lat Doświadczenia
+        </div>
+      </div>
+
+      <div class="flex flex-col items-center justify-center py-12 md:py-16 relative group bg-vantablack text-ghost-white transition-colors">
+        <span class="absolute top-4 left-4 text-[10px] font-mono text-cool-grey uppercase tracking-widest">DT-02 / CORE</span>
+        <div class="trust-pulse absolute top-4 right-4 w-2 h-2 bg-signal-orange rounded-full"></div>
+        
+        <div class="text-6xl lg:text-8xl font-black tabular-nums tracking-tighter flex items-end leading-none">
+          <span id="trust-sold">0</span><span class="text-3xl lg:text-5xl mb-1 lg:mb-2 text-signal-orange">k</span>
+        </div>
+        <div class="mt-4 text-xs lg:text-sm font-bold uppercase tracking-[0.2em] text-cool-grey">
+          Sprzedanych Sztuk
+        </div>
+      </div>
+
+      <div class="flex flex-col items-center justify-center py-12 md:py-16 relative group">
+        <span class="absolute top-4 left-4 text-[10px] font-mono text-cool-grey uppercase tracking-widest">DT-03</span>
+        <div class="text-6xl lg:text-8xl font-black text-vantablack tabular-nums tracking-tighter flex items-end leading-none">
+          <span id="trust-shipping">0</span><span class="text-3xl lg:text-5xl mb-1 lg:mb-2 text-signal-orange">H</span>
+        </div>
+        <div class="mt-4 text-xs lg:text-sm font-bold uppercase tracking-[0.2em] text-cool-grey">
+          Czas Wysyłki
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{/* Piekielnie szybki skrypt Vanilla JS wykonujący tę samą magię co Svelte Tweened */}
+<script is:inline>
+  document.addEventListener('astro:page-load', () => {
+    const section = document.getElementById('trust-bar');
+    if (!section) return;
+
+    const yearsEl = document.getElementById('trust-years');
+    const soldEl = document.getElementById('trust-sold');
+    const shippingEl = document.getElementById('trust-shipping');
+
+    // Odpowiednik svelte/easing cubicOut
+    function cubicOut(t) {
+      return 1 - Math.pow(1 - t, 3);
+    }
+
+    // Funkcja odliczająca płynnie do celu
+    function animateValue(el, target, duration) {
+      if (!el) return;
+      let start = null;
+
+      function update(timestamp) {
+        if (!start) start = timestamp;
+        let timeFraction = (timestamp - start) / duration;
+        if (timeFraction > 1) timeFraction = 1;
+
+        const progress = cubicOut(timeFraction);
+        el.textContent = Math.floor(progress * target);
+
+        if (timeFraction < 1) {
+          requestAnimationFrame(update);
+        }
+      }
+      requestAnimationFrame(update);
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        // Dodajemy klasę, która wyzwala CSS dla gradientu i pulsu
+        section.classList.add('is-visible');
+        
+        // Odpalamy liczniki do wartości docelowych z odpowiadającymi czasami
+        animateValue(yearsEl, 20, 1500);
+        animateValue(soldEl, 50, 2000);
+        animateValue(shippingEl, 24, 1000);
+        
+        observer.disconnect();
+      }
+    }, { threshold: 0.5 });
+
+    observer.observe(section);
+  });
+</script>
+
+<style>
+  /* Wyzwalanie animacji przez dodanie klasy .is-visible (zastępuje logikę Svelte {isVisible}) */
+  .wl-trust-bar.is-visible .trust-gradient {
+    transform: translateX(200%);
+  }
+  .wl-trust-bar.is-visible .trust-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+</style>

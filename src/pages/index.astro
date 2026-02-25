@@ -1,13 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Header from '../components/Header.astro';
-import Hero from '../components/Hero.svelte';
-import TrustBar from '../components/TrustBar.svelte';
+import Hero from '../components/Hero.astro';
+import TrustBar from '../components/TrustBar.astro';
 import Catalog from '../components/Catalog.svelte';
-import Process from '../components/Process.svelte';
-import Faq from '../components/Faq.svelte';
+import Process from '../components/Process.astro';
+import Faq from '../components/Faq.astro';
 import ContactForm from '../components/ContactForm.svelte';
-import Footer from '../components/Footer.svelte';
+import Footer from '../components/Footer.astro';
 import fetchApi from '../lib/strapi';
 
 const STRAPI_URL = import.meta.env.PUBLIC_STRAPI_URL || 'http://localhost:1337';
@@ -81,13 +81,12 @@ try {
 
   <main class="relative flex flex-col">
     <Hero 
-      client:idle
       line1={data.hero_headline_line1} 
       line2={data.hero_headline_line2} 
       subheadline={data.hero_subheadline} 
     />
     
-    <TrustBar client:visible />
+    <TrustBar />
 
     <Catalog 
       client:visible 
@@ -95,9 +94,9 @@ try {
       strapiUrl={STRAPI_URL}
     />
 
-    <Process client:visible />
+    <Process />
 
-    <Faq client:visible />
+    <Faq />
 
     <section class="relative w-full bg-ghost-white pt-24 pb-24 z-20 border-t border-border-tech/30">
       <div class="max-w-[1920px] mx-auto px-4 md:px-8">
@@ -106,7 +105,14 @@ try {
     </section>
 
     <slot />
-    <Footer client:visible />
+    <Footer 
+        phone={globalSettings.phone_main} 
+        email={globalSettings.email_main}
+        companyName={globalSettings.company_name}
+        nip={globalSettings.company_nip}
+        address={globalSettings.company_address}
+        workingHours={globalSettings.working_hours}
+      />
 
   </main>
 </Layout>

@@ -1,14 +1,14 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import Preloader from '../../components/Preloader.svelte';
+import Preloader from '../../components/Preloader.astro';
 import Header from '../../components/Header.astro';
-import Hero from '../../components/Hero.svelte';
-import TrustBar from '../../components/TrustBar.svelte';
+import Hero from '../../components/Hero.astro';
+import TrustBar from '../../components/TrustBar.astro';
 import Catalog from '../../components/Catalog.svelte';
-import Process from '../../components/Process.svelte';
-import Faq from '../../components/Faq.svelte';
+import Process from '../../components/Process.astro';
+import Faq from '../../components/Faq.astro';
 import ContactForm from '../../components/ContactForm.svelte';
-import Footer from '../../components/Footer.svelte';
+import Footer from '../../components/Footer.astro';
 import SpecModal from '../../components/SpecModal.svelte';
 import fetchApi from '../../lib/strapi';
 
@@ -106,13 +106,12 @@ const finalImage = productSeo.metaImage?.url || (product.images && product.image
   <main class="relative flex flex-col">
     {/* TŁO STRONY (Wygląda identycznie jak index.astro) */}
     <Hero 
-      client:idle
       line1={globalData.hero_headline_line1} 
       line2={globalData.hero_headline_line2} 
       subheadline={globalData.hero_subheadline} 
     />
     
-    <TrustBar client:visible />
+    <TrustBar />
 
     <Catalog 
       client:visible 
@@ -120,9 +119,9 @@ const finalImage = productSeo.metaImage?.url || (product.images && product.image
       strapiUrl={STRAPI_URL}
     />
 
-    <Process client:visible />
+    <Process />
 
-    <Faq client:visible />
+    <Faq />
 
     <section class="relative w-full bg-ghost-white pt-24 pb-24 z-20 border-t border-border-tech/30">
       <div class="max-w-[1920px] mx-auto px-4 md:px-8">
@@ -130,7 +129,7 @@ const finalImage = productSeo.metaImage?.url || (product.images && product.image
       </div>
     </section>
 
-    <Footer client:visible />
+    <Footer />
 
     {/* GŁÓWNY PUNKT PROGRAMU: SpecModal jest na wierzchu z danymi produktu! */}
     <SpecModal 

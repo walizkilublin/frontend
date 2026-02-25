@@ -1,0 +1,155 @@
+---
+// Zmiana z .svelte na .astro - Zero Svelte JS, 100% natywna wydajność
+---
+
+<div id="wl-preloader" class="wl-preloader-wrapper fixed inset-0 z-[9999] flex overflow-hidden pointer-events-auto">
+  
+  <div 
+    id="preloader-left"
+    class="w-1/2 h-full bg-ghost-white transition-transform duration-[600ms] ease-[cubic-bezier(0.85,0,0.15,1)] relative flex items-center justify-end overflow-hidden"
+  >
+    <div class="absolute inset-0 opacity-[0.03] bg-[linear-gradient(rgba(17,24,39,1)_1px,transparent_1px),linear-gradient(90deg,rgba(17,24,39,1)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+    <div class="absolute right-0 top-0 bottom-0 w-[2px] bg-vantablack z-10"></div>
+    <div class="w-8 h-16 bg-vantablack translate-x-[1px] z-20 flex items-center justify-end pr-2 border-y-2 border-l-2 border-white/10">
+      <div class="w-1 h-8 bg-signal-orange animate-pulse"></div>
+    </div>
+  </div>
+
+  <div 
+    id="preloader-right"
+    class="w-1/2 h-full bg-ghost-white transition-transform duration-[600ms] ease-[cubic-bezier(0.85,0,0.15,1)] relative flex items-center justify-start overflow-hidden"
+  >
+    <div class="absolute inset-0 opacity-[0.03] bg-[linear-gradient(rgba(17,24,39,1)_1px,transparent_1px),linear-gradient(90deg,rgba(17,24,39,1)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
+    <div class="absolute left-0 top-0 bottom-0 w-[2px] bg-vantablack z-10"></div>
+    <div class="w-8 h-16 bg-vantablack -translate-x-[1px] z-20 flex items-center justify-start pl-2 border-y-2 border-r-2 border-white/10">
+      <div class="w-1 h-8 bg-signal-orange animate-pulse delay-75"></div>
+    </div>
+  </div>
+
+  <div 
+    id="preloader-hud"
+    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center transition-all duration-300 z-50 w-full max-w-xs"
+  >
+    <div class="bg-vantablack text-ghost-white p-6 w-full shadow-2xl border border-cool-grey/20 relative overflow-hidden">
+      
+      <div class="absolute inset-0 w-full h-full bg-gradient-to-b from-transparent via-signal-orange/10 to-transparent -translate-y-full animate-scan"></div>
+
+      <div class="flex justify-between items-end mb-4 font-mono">
+        <div class="flex flex-col">
+          <span class="text-[10px] text-cool-grey tracking-widest uppercase">Wczytuję magazyn</span>
+          <span class="text-xl font-bold tracking-tight">WL-SYS.01</span>
+        </div>
+        <div class="text-4xl font-black text-signal-orange tabular-nums tracking-tighter">
+          <span id="preloader-number">0</span><span class="text-lg opacity-50">%</span>
+        </div>
+      </div>
+
+      <div class="w-full h-2 bg-ghost-white/10 relative overflow-hidden">
+        <div 
+          id="preloader-bar"
+          class="absolute top-0 left-0 h-full bg-signal-orange"
+          style="width: 0%;"
+        ></div>
+      </div>
+
+      <div class="mt-4 flex justify-between items-center text-[9px] font-mono text-cool-grey uppercase tracking-widest">
+        <span class="flex items-center gap-2">
+          <span class="animate-spin inline-block">/</span>
+          Ustalanie połączenia
+        </span>
+        <span id="preloader-status">CZEKAM</span>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+{/* Piekielnie szybki skrypt Vanilla JS obsługujący twarde wejścia oraz View Transitions */}
+<script is:inline>
+  function initPreloader() {
+    const preloader = document.getElementById('wl-preloader');
+    if (!preloader) return;
+
+    // TARCZA: Jeśli to bot LUB człowiek powracający (np. po kliknięciu w produkt)
+    if (sessionStorage.getItem('preloader_shown') === 'true' || document.documentElement.classList.contains('skip-bot')) {
+      preloader.style.display = 'none'; // KRYTYCZNE: Błyskawicznie ukrywamy preloader!
+      return;
+    }
+
+    // Zapisujemy pierwsze wejście
+    sessionStorage.setItem('preloader_shown', 'true');
+
+    const leftDoor = document.getElementById('preloader-left');
+    const rightDoor = document.getElementById('preloader-right');
+    const hud = document.getElementById('preloader-hud');
+    const numberEl = document.getElementById('preloader-number');
+    const barEl = document.getElementById('preloader-bar');
+    const statusEl = document.getElementById('preloader-status');
+
+    function expoInOut(t) {
+      if (t === 0) return 0;
+      if (t === 1) return 1;
+      if (t < 0.5) return Math.pow(2, 20 * t - 10) / 2;
+      return (2 - Math.pow(2, -20 * t + 10)) / 2;
+    }
+
+    const duration = 600;
+    let start = null;
+
+    function updateProgress(timestamp) {
+      if (!start) start = timestamp;
+      
+      let timeFraction = (timestamp - start) / duration;
+      if (timeFraction > 1) timeFraction = 1;
+
+      const progress = expoInOut(timeFraction) * 100;
+      const rounded = Math.round(progress);
+
+      if (numberEl) numberEl.textContent = rounded;
+      if (barEl) barEl.style.width = progress + '%';
+
+      if (rounded === 100 && statusEl) {
+        statusEl.textContent = 'GOTOWE';
+        statusEl.classList.add('text-signal-orange');
+      }
+
+      if (timeFraction < 1) {
+        requestAnimationFrame(updateProgress);
+      }
+    }
+
+    requestAnimationFrame(updateProgress);
+
+    setTimeout(() => {
+      if(hud) hud.classList.add('opacity-0', 'scale-95');
+    }, 700);
+
+    setTimeout(() => {
+      if(leftDoor) leftDoor.classList.add('-translate-x-full');
+      if(rightDoor) rightDoor.classList.add('translate-x-full');
+    }, 800);
+
+    setTimeout(() => {
+      preloader.style.display = 'none';
+      document.documentElement.classList.add('skip-bot'); 
+    }, 1500);
+  }
+
+  // 1. Uruchomienie przy twardym wejściu (natychmiastowe FCP)
+  initPreloader();
+
+  // 2. Uruchomienie przy nawigacji wewnętrznej (Astro View Transitions)
+  // Odpala się w 0ms po podmienieniu DOMu, natychmiast ukrywając zresetowany Preloader
+  document.addEventListener('astro:after-swap', initPreloader);
+</script>
+
+<style>
+  @keyframes scan {
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100%); }
+  }
+  .animate-scan {
+    animation: scan 1s linear infinite; /* Szybszy skaner */
+  }
+</style>

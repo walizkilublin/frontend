@@ -78,8 +78,9 @@
       href="/#katalog"
       on:click={handleClose}
       bind:this={closeLink}
-      class="absolute inset-0 w-full h-full bg-vantablack/60 backdrop-blur-md cursor-default border-none block"
-      transition:fade={{ duration: 300 }} aria-label="Zamknij tło" tabindex="-1"
+      class="absolute inset-0 w-full h-full cursor-default border-none block"
+      style="background: rgba(17,24,39,0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);"
+      transition:fade={{ duration: 400 }} aria-label="Zamknij tło" tabindex="-1"
     ></a>
 
     <div 
@@ -347,7 +348,7 @@
 
         </div>
 
-        <div class="bg-vantablack p-4 md:p-6 mt-auto sticky bottom-0 z-10">
+          <div class="bg-vantablack p-4 md:p-6 mt-auto md:sticky md:bottom-0 z-10 shrink-0">
           <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4 text-ghost-white/70 text-[10px] font-mono uppercase tracking-widest border-b border-ghost-white/10 pb-4">
             <span>Dostawa: Przedpłata {shippingPrepaid} PLN</span>
             <span class="hidden sm:block">|</span>
