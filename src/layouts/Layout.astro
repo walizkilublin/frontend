@@ -1,11 +1,11 @@
 ---
 // Import globalnych styli Tailwind v4 (zawiera nasz grain overlay i kolory)
 import '../styles/global.css';
-import { ClientRouter } from 'astro:transitions';
+// import { ClientRouter } from 'astro:transitions';
 import fetchApi from '../lib/strapi';
 
 // IMPORT BANERA CIASTECZEK ORAZ PRELOADERA
-import CookieConsent from '../components/CookieConsent.svelte';
+import CookieConsent from '../components/CookieConsent.astro';
 import Preloader from '../components/Preloader.astro';
 
 interface Props {
@@ -121,7 +121,7 @@ const ogType = globalSeo?.openGraph?.ogType || 'website';
                 }
             })();
         </script>
-        <ClientRouter />
+        <!-- <ClientRouter /> -->
 
 
 		{/* --- INTELIGENTNY SCROLL --- */}
@@ -210,6 +210,6 @@ const ogType = globalSeo?.openGraph?.ogType || 'website';
         <slot />
 
         {/* Baner ciasteczek ładujący się po stronie klienta (gadający z GTM) */}
-        <CookieConsent client:idle />
+        <CookieConsent  />
     </body>
 </html>

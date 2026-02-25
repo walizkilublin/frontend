@@ -1,0 +1,326 @@
+---
+// CookieBanner.astro - 100% natywny HTML i Vanilla JS, Zero Svelte
+---
+
+<div id="wl-cookie-banner" class="fixed inset-0 z-[9999] pointer-events-none flex items-end sm:items-bottom sm:justify-start p-4 md:p-8 opacity-0 transition-opacity duration-300" style="display: none;">
+  
+  <div class="w-full sm:w-[450px] bg-vantablack border border-border-tech shadow-2xl pointer-events-auto relative overflow-hidden flex flex-col translate-y-4 transition-transform duration-300" id="wl-cookie-box">
+    
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyBAMAAADsEZWCAAAAGFBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAATCwzQ8oQKAAAACHRSTlMAMwBfCj/q2Z1h5wAAAI1JREFUOMutVUEOwyAMsyY/oN0+IH9Q37/L2k1I2kRppY4Dxg6yA01E0h+Kx3LwLp2F10h6j+Uj7oQ1r1HzHsvH3AlrXqPmPZaPuRPWvEbNeywfcyeseY2a91g+5k5Y8xo177F8zJ2w5jVq3mP5mDthzWvUvMfyMXfCmtcoeY/lY+6ENa9R8x7Lx9wJzX4B+D8v32k3vjQAAAAASUVORK5CYII='); background-repeat: repeat;"></div>
+
+    <div class="p-6 md:p-8 relative z-10 flex flex-col h-full">
+      
+      <div class="mb-6">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="w-2 h-2 bg-signal-orange animate-pulse"></span>
+          <span class="text-[10px] font-mono font-bold tracking-widest text-cool-grey uppercase">Protokół Śledzenia</span>
+        </div>
+        <h3 class="text-xl font-black text-ghost-white uppercase tracking-tighter mb-2">
+          Autoryzacja Cookies
+        </h3>
+        <p class="text-xs text-cool-grey leading-relaxed font-mono">
+          System wykorzystuje pliki cookies do optymalizacji procesów analitycznych i marketingowych. Część z nich jest krytyczna dla funkcjonowania infrastruktury.
+        </p>
+      </div>
+
+      <div id="wl-cookie-settings" class="mb-6 flex flex-col gap-4 border-t border-b border-border-tech/50 py-4 hidden">
+        
+        <div class="flex items-center justify-between">
+          <div class="flex flex-col pr-4">
+            <span class="text-sm font-bold text-ghost-white uppercase tracking-widest">Niezbędne</span>
+            <span class="text-[10px] font-mono text-cool-grey uppercase">Krytyczne dla systemu</span>
+          </div>
+          <div class="w-12 h-6 border-2 border-cool-grey/50 bg-vantablack flex items-center p-0.5 opacity-50 cursor-not-allowed">
+            <div class="h-4 w-4 bg-cool-grey translate-x-6"></div>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div class="flex flex-col pr-4">
+            <span class="text-sm font-bold text-ghost-white uppercase tracking-widest">Analityczne</span>
+            <span class="text-[10px] font-mono text-cool-grey uppercase">Statystyki i ruch</span>
+          </div>
+          <button 
+            type="button" id="toggle-analytics" aria-label="Przełącz ciasteczka analityczne" role="switch" aria-checked="false"
+            class="w-12 h-6 border-2 flex items-center p-0.5 transition-colors duration-300 border-cool-grey bg-vantablack"
+          >
+            <div id="knob-analytics" class="h-4 w-4 transition-transform duration-300 translate-x-0 bg-cool-grey"></div>
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <div class="flex flex-col pr-4">
+            <span class="text-sm font-bold text-ghost-white uppercase tracking-widest">Marketingowe</span>
+            <span class="text-[10px] font-mono text-cool-grey uppercase">Identyfikacja i reklama</span>
+          </div>
+          <button 
+            type="button" id="toggle-marketing" aria-label="Przełącz ciasteczka marketingowe" role="switch" aria-checked="false"
+            class="w-12 h-6 border-2 flex items-center p-0.5 transition-colors duration-300 border-cool-grey bg-vantablack"
+          >
+            <div id="knob-marketing" class="h-4 w-4 transition-transform duration-300 translate-x-0 bg-cool-grey"></div>
+          </button>
+        </div>
+
+      </div>
+
+      <div id="wl-cookie-actions-main" class="mt-auto flex flex-col gap-3">
+        <button id="btn-accept-all" class="w-full bg-signal-orange text-white font-black uppercase tracking-widest text-xs py-4 hover:bg-white hover:text-signal-orange transition-colors duration-300 border border-transparent">
+          Zatwierdź Wszystkie
+        </button>
+        <div class="grid grid-cols-2 gap-3">
+          <button id="btn-accept-necessary" class="bg-surface/50 border border-border-tech text-ghost-white font-bold uppercase tracking-widest text-[10px] py-3 hover:border-signal-orange hover:text-signal-orange transition-colors">
+            Tylko Niezbędne
+          </button>
+          <button id="btn-show-settings" class="bg-transparent border border-border-tech text-cool-grey font-bold uppercase tracking-widest text-[10px] py-3 hover:text-ghost-white hover:border-ghost-white transition-colors">
+            Dostosuj
+          </button>
+        </div>
+      </div>
+
+      <div id="wl-cookie-actions-settings" class="mt-auto flex flex-col gap-3 hidden">
+        <button id="btn-save-settings" class="w-full bg-signal-orange text-white font-black uppercase tracking-widest text-xs py-4 hover:bg-white hover:text-signal-orange transition-colors duration-300 border border-transparent">
+          Zapisz Konfigurację
+        </button>
+        <button id="btn-hide-settings" class="bg-transparent border border-border-tech text-cool-grey font-bold uppercase tracking-widest text-[10px] py-3 hover:text-ghost-white hover:border-ghost-white transition-colors">
+          Wróć
+        </button>
+      </div>
+
+      <div class="mt-6 text-center">
+        <a href="/polityka-prywatnosci" class="text-[10px] font-mono text-cool-grey hover:text-signal-orange uppercase tracking-widest transition-colors border-b border-transparent hover:border-signal-orange pb-0.5">
+          Zobacz Politykę Prywatności
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  (function() {
+    const COOKIE_NAME = 'b2b_sys_consent';
+    const REVISION = 1;
+
+    let cookiePreferences = { necessary: true, analytics: false, marketing: false, functional: false };
+    
+    // Elementy DOM
+    const banner = document.getElementById('wl-cookie-banner');
+    const box = document.getElementById('wl-cookie-box');
+    const settingsPanel = document.getElementById('wl-cookie-settings');
+    const actionsMain = document.getElementById('wl-cookie-actions-main');
+    const actionsSettings = document.getElementById('wl-cookie-actions-settings');
+    
+    // Toggles
+    const btnAnalytics = document.getElementById('toggle-analytics');
+    const knobAnalytics = document.getElementById('knob-analytics');
+    const btnMarketing = document.getElementById('toggle-marketing');
+    const knobMarketing = document.getElementById('knob-marketing');
+
+    // === HELPERS ===
+    function readCookie(name) {
+      if (typeof document === 'undefined') return null;
+      const all = document.cookie ? document.cookie.split('; ') : [];
+      for (const pair of all) {
+        const idx = pair.indexOf('=');
+        const key = idx > -1 ? pair.slice(0, idx) : pair;
+        if (key === name) return decodeURIComponent(idx > -1 ? pair.slice(idx + 1) : '');
+      }
+      return null;
+    }
+
+    function writeCookie(name, value, days = 180) {
+      if (typeof document === 'undefined') return;
+      const expires = new Date(Date.now() + days * 864e5).toUTCString();
+      const serialized = encodeURIComponent(typeof value === 'string' ? value : JSON.stringify(value));
+      let cookie = `${name}=${serialized}; Expires=${expires}; Path=/; SameSite=Lax`;
+      if (location.protocol === 'https:') cookie += '; Secure';
+      document.cookie = cookie;
+    }
+
+    function parseExisting() {
+      try {
+        const raw = readCookie(COOKIE_NAME);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    }
+
+    function ensureDataLayer() {
+      window.dataLayer = window.dataLayer || [];
+      return window.dataLayer;
+    }
+
+    function gtagSafe(...args) {
+      const dl = ensureDataLayer();
+      const g = window.gtag || function() { dl.push(arguments); };
+      g(...args);
+    }
+
+    function pushDL(obj) {
+      const dl = ensureDataLayer();
+      dl.push(obj);
+    }
+
+    function pushConsentUpdate(analytics, marketing, functional = false) {
+      gtagSafe('consent', 'update', {
+        analytics_storage: analytics ? 'granted' : 'denied',
+        ad_storage: marketing ? 'granted' : 'denied',
+        ad_user_data: marketing ? 'granted' : 'denied',
+        ad_personalization: marketing ? 'granted' : 'denied',
+        functionality_storage: functional ? 'granted' : 'denied',
+        personalization_storage: functional ? 'granted' : 'denied'
+      });
+      
+      pushDL({
+        event: 'consent_update',
+        analytics_storage: analytics ? 'granted' : 'denied',
+        ad_storage: marketing ? 'granted' : 'denied',
+        ad_user_data: marketing ? 'granted' : 'denied',
+        ad_personalization: marketing ? 'granted' : 'denied'
+      });
+    }
+
+    function pushInitialSelection() {
+      pushDL({ event: 'consent_initial_selection' });
+    }
+
+    function storeCookieFromPrefs() {
+      const categories = [
+        ...(cookiePreferences.analytics ? ['analytics'] : []),
+        ...(cookiePreferences.marketing ? ['marketing'] : []),
+        ...(cookiePreferences.functional ? ['functional'] : [])
+      ];
+      writeCookie(COOKIE_NAME, {
+        stamp: 'b2b-system',
+        necessary: true,
+        categories,
+        rev: REVISION
+      });
+    }
+
+    // === INTERFEJS ===
+    function hideBanner() {
+      banner.classList.remove('opacity-100');
+      box.classList.remove('translate-y-0');
+      setTimeout(() => { banner.style.display = 'none'; }, 300);
+    }
+
+    function showBanner() {
+      banner.style.display = 'flex';
+      // Wymuszenie reflow dla płynnej animacji wejścia
+      banner.getBoundingClientRect(); 
+      banner.classList.add('opacity-100');
+      box.classList.add('translate-y-0');
+    }
+
+    function updateToggleUI() {
+      // Analytics
+      if (cookiePreferences.analytics) {
+        btnAnalytics.classList.replace('border-cool-grey', 'border-signal-orange');
+        btnAnalytics.classList.replace('bg-vantablack', 'bg-signal-orange/10');
+        knobAnalytics.classList.replace('translate-x-0', 'translate-x-6');
+        knobAnalytics.classList.replace('bg-cool-grey', 'bg-signal-orange');
+        btnAnalytics.setAttribute('aria-checked', 'true');
+      } else {
+        btnAnalytics.classList.replace('border-signal-orange', 'border-cool-grey');
+        btnAnalytics.classList.replace('bg-signal-orange/10', 'bg-vantablack');
+        knobAnalytics.classList.replace('translate-x-6', 'translate-x-0');
+        knobAnalytics.classList.replace('bg-signal-orange', 'bg-cool-grey');
+        btnAnalytics.setAttribute('aria-checked', 'false');
+      }
+
+      // Marketing
+      if (cookiePreferences.marketing) {
+        btnMarketing.classList.replace('border-cool-grey', 'border-signal-orange');
+        btnMarketing.classList.replace('bg-vantablack', 'bg-signal-orange/10');
+        knobMarketing.classList.replace('translate-x-0', 'translate-x-6');
+        knobMarketing.classList.replace('bg-cool-grey', 'bg-signal-orange');
+        btnMarketing.setAttribute('aria-checked', 'true');
+      } else {
+        btnMarketing.classList.replace('border-signal-orange', 'border-cool-grey');
+        btnMarketing.classList.replace('bg-signal-orange/10', 'bg-vantablack');
+        knobMarketing.classList.replace('translate-x-6', 'translate-x-0');
+        knobMarketing.classList.replace('bg-signal-orange', 'bg-cool-grey');
+        btnMarketing.setAttribute('aria-checked', 'false');
+      }
+    }
+
+    // === EVENT LISTENERS ===
+    document.getElementById('btn-accept-all').addEventListener('click', () => {
+      cookiePreferences = { necessary: true, analytics: true, marketing: true, functional: true };
+      storeCookieFromPrefs();
+      pushConsentUpdate(true, true, true);
+      pushInitialSelection();
+      hideBanner();
+    });
+
+    document.getElementById('btn-accept-necessary').addEventListener('click', () => {
+      cookiePreferences = { necessary: true, analytics: false, marketing: false, functional: false };
+      storeCookieFromPrefs();
+      pushConsentUpdate(false, false, false);
+      pushInitialSelection();
+      hideBanner();
+    });
+
+    document.getElementById('btn-show-settings').addEventListener('click', () => {
+      settingsPanel.classList.remove('hidden');
+      actionsMain.classList.add('hidden');
+      actionsSettings.classList.remove('hidden');
+      updateToggleUI();
+    });
+
+    document.getElementById('btn-hide-settings').addEventListener('click', () => {
+      settingsPanel.classList.add('hidden');
+      actionsMain.classList.remove('hidden');
+      actionsSettings.classList.add('hidden');
+    });
+
+    document.getElementById('btn-save-settings').addEventListener('click', () => {
+      storeCookieFromPrefs();
+      pushConsentUpdate(cookiePreferences.analytics, cookiePreferences.marketing, cookiePreferences.functional);
+      pushInitialSelection();
+      hideBanner();
+    });
+
+    btnAnalytics.addEventListener('click', () => {
+      cookiePreferences.analytics = !cookiePreferences.analytics;
+      updateToggleUI();
+    });
+
+    btnMarketing.addEventListener('click', () => {
+      cookiePreferences.marketing = !cookiePreferences.marketing;
+      updateToggleUI();
+    });
+
+    // === INICJALIZACJA ===
+    function init() {
+      const existing = parseExisting();
+      if (!existing || existing.rev !== REVISION) {
+        // Pokaż baner, jeśli użytkownik nie ma cookies lub zmieniła się rewizja
+        setTimeout(showBanner, 100); 
+      } else {
+        const cats = existing.categories || [];
+        cookiePreferences = {
+          necessary: true,
+          analytics: cats.includes('analytics'),
+          marketing: cats.includes('marketing'),
+          functional: cats.includes('functional')
+        };
+        // Natychmiastowa synchronizacja dla powracających
+        pushConsentUpdate(cookiePreferences.analytics, cookiePreferences.marketing, cookiePreferences.functional);
+      }
+    }
+
+    // Odpal natychmiast
+    init();
+
+    // Wystawiamy globalną funkcję dla innych plików (np. link w stopce do zmiany ustawień)
+    window.openCookiePreferences = () => {
+      showBanner();
+      document.getElementById('btn-show-settings').click();
+    };
+
+  })();
+</script>
