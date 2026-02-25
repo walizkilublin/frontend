@@ -10,7 +10,6 @@
   
   let innerWidth = 1920;
   let innerHeight = 1080;
-  let isMounted = false;
 
   function handleMouseMove(e) {
     const x = (e.clientX / innerWidth - 0.5) * 2;
@@ -21,7 +20,6 @@
   onMount(() => {
     innerWidth = window.innerWidth;
     innerHeight = window.innerHeight;
-    setTimeout(() => { isMounted = true; }, 100);
   });
 
   // Ciężka bryła - mikro rotacja
@@ -49,10 +47,7 @@
     <div class="absolute inset-0 bg-[linear-gradient(rgba(17,24,39,1)_1px,transparent_1px),linear-gradient(90deg,rgba(17,24,39,1)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
   </div>
 
-  <div class="absolute top-[10vh] inset-x-0 flex justify-center z-10 pointer-events-none transition-all duration-1000 ease-out"
-       class:opacity-100={isMounted} class:opacity-0={!isMounted}
-       class:translate-y-0={isMounted} class:-translate-y-8={!isMounted}>
-    
+  <div class="absolute top-[10vh] inset-x-0 flex justify-center z-10 pointer-events-none animate-fade-in-up" style="--anim-delay: 0s;">
    <div style="transform: translate({textTranslateX}px, {textTranslateY}px);">
       <h1 class="font-black uppercase tracking-tighter text-vantablack leading-[0.85] opacity-90 text-center px-4 flex flex-col md:flex-row md:gap-4 whitespace-nowrap"
           style="font-size: clamp(3rem, 9vw, 11rem);">
@@ -64,10 +59,8 @@
   </div>
 
   <div class="absolute inset-0 z-20 flex items-center justify-center pointer-events-none mt-10" style="perspective: 1200px;">
-    
-    <div class="relative flex flex-col items-center justify-center transition-all duration-1000 delay-200 will-change-transform"
-         class:opacity-100={isMounted} class:opacity-0={!isMounted}
-         style="transform-style: preserve-3d; transform: scale({modelScale}) translate3d({translateX}px, {translateY}px, 0px) rotateX({rotateX}deg) rotateY({rotateY}deg);">
+    <div class="relative flex flex-col items-center justify-center animate-fade-in-up will-change-transform"
+         style="--anim-delay: 0.2s; transform-style: preserve-3d; transform: scale({modelScale}) translate3d({translateX}px, {translateY}px, 0px) rotateX({rotateX}deg) rotateY({rotateY}deg);">
       
       <div class="absolute -bottom-16 w-[300px] h-10 bg-black/30 blur-2xl rounded-full backface-hidden" style="transform: translateZ(-50px);"></div>
 
@@ -113,10 +106,7 @@
     </div>
   </div>
 
-  <div class="absolute bottom-[20vh] inset-x-0 flex flex-col items-center z-30 pointer-events-none transition-all duration-1000 delay-300 ease-out"
-       class:opacity-100={isMounted} class:opacity-0={!isMounted}
-       class:translate-y-0={isMounted} class:translate-y-8={!isMounted}>
-    
+  <div class="absolute bottom-[20vh] inset-x-0 flex flex-col items-center z-30 pointer-events-none animate-fade-in-up" style="--anim-delay: 0.3s;">
     <div style="transform: translate({textTranslateX}px, {textTranslateY}px);">
       <h2 class="font-black uppercase tracking-tighter leading-none text-outline px-8"
           style="font-size: clamp(3.5rem, 10vw, 11rem);">
@@ -125,29 +115,17 @@
     </div>
   </div>
 
-  <div class="absolute bottom-10 inset-x-0 z-40 px-4 flex justify-center opacity-0 transition-opacity duration-1000 delay-500" class:opacity-100={isMounted}>
+  <div class="absolute bottom-10 inset-x-0 z-40 px-4 flex justify-center pointer-events-none animate-fade-in-up" style="--anim-delay: 0.5s;">
     <p class="text-xs md:text-sm lg:text-base font-medium text-cool-grey max-w-xl text-center tracking-wide bg-ghost-white/90 py-3 px-8 backdrop-blur-md rounded-full border border-vantablack/10 shadow-sm pointer-events-auto">
       {subheadline}
     </p>
   </div>
-
-  <!-- <div class="absolute bottom-10 left-8 z-50 text-[10px] font-mono text-vantablack uppercase tracking-widest hidden lg:block pointer-events-none">
-    <div class="flex items-center gap-3 mb-3 border-b border-vantablack/20 pb-2">
-      <div class="w-2 h-2 bg-signal-orange rounded-full shadow-[0_0_8px_#FF4500]"></div>
-      <span class="font-bold">SYSTEM AKTYWNY</span>
-    </div>
-    <div class="flex flex-col gap-1 opacity-70">
-      <div class="flex justify-between w-32"><span>OS-X:</span> <span>{rotateY.toFixed(2)}°</span></div>
-      <div class="flex justify-between w-32"><span>OS-Y:</span> <span>{rotateX.toFixed(2)}°</span></div>
-    </div>
-  </div> -->
 
 </section>
 
 <style>
   .text-outline {
     color: transparent;
-    /* Piekielnie ostry, gruby obrys, żeby radził sobie bez blura pod spodem */
     -webkit-text-stroke: 3px #111827; 
   }
   @media (max-width: 768px) {
@@ -158,7 +136,24 @@
     backface-visibility: hidden;
   }
 
-  /* Błysk ONE-SHOT. Wjeżdża po 1.5s i zatrzymuje się (forwards) by zniknąć. */
+  /* KRYTYCZNA ZMIANA: Czysty CSS dla wjazdu (błyskawiczny na smartfonach) */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(2rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in-up {
+    opacity: 0; /* Zapewnia, że jest ukryte przed startem animacji */
+    animation: fadeInUp 1s ease-out forwards;
+    animation-delay: var(--anim-delay, 0s);
+  }
+
   @keyframes glareSweep {
     0% { transform: translateX(-150%); opacity: 0; }
     20% { opacity: 0.8; }
@@ -168,6 +163,6 @@
   
   .animate-glare-sweep {
     animation: glareSweep 1.5s cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
-    animation-delay: 1.5s; /* Odpala się gdy walizka już wjedzie */
+    animation-delay: 1.5s; 
   }
 </style>
