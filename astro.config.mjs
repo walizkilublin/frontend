@@ -14,7 +14,11 @@ export default defineConfig({
   site: 'https://walizki-lublin.pl',
 
   prefetch: true,
-  
+
+  build: {
+    inlineStylesheets: 'always'
+  },
+
   integrations: [svelte(), sitemap()],
 
   vite: {

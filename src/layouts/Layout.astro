@@ -117,11 +117,11 @@ const ogType = globalSeo?.openGraph?.ogType || 'website';
             });
         </script>
 		
-        {/* ===== GTM: Twój autorski, zoptymalizowany loader Consent Mode v2 ===== */}
+        {/* ===== GTM: Elitarny, leniwy loader Consent Mode v2 (Zoptymalizowany pod PageSpeed) ===== */}
         {GTM_ID && (
           <script is:inline nonce={nonce} define:vars={{ GTM_ID, nonce }}>
             (function () {
-              // 1) dataLayer + stub gtag — MUSI powstać przed GTM
+              // 1) dataLayer + stub gtag — MUSI powstać natychmiast przed GTM, żeby baner mógł działać!
               window.dataLayer = window.dataLayer || [];
               window.gtag = window.gtag || function(){ window.dataLayer.push(arguments); };
 
@@ -134,16 +134,28 @@ const ogType = globalSeo?.openGraph?.ogType || 'website';
                 wait_for_update: 500
               });
 
-              // 3) Loader GTM z nonce (CSP)
-              (function(w,d,s,l,i,nc){
-                w[l]=w[l]||[];
-                w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
-                var f=d.getElementsByTagName(s)[0], j=d.createElement(s), dl=l!='dataLayer'?'&l='+l:'';
-                j.async = true;
-                j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-                if (nc) j.setAttribute('nonce', nc);
-                f.parentNode.insertBefore(j,f);
-              })(window,document,'script','dataLayer',GTM_ID,nonce);
+              // 3) Inteligentny Leniwy Loader (Odpala się po interakcji lub po 3.5 sekundach)
+              var loadGTM = function() {
+                if (window.__GTM_LOADED__) return;
+                window.__GTM_LOADED__ = true;
+                
+                (function(w,d,s,l,i,nc){
+                  w[l]=w[l]||[];
+                  w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
+                  var f=d.getElementsByTagName(s)[0], j=d.createElement(s), dl=l!='dataLayer'?'&l='+l:'';
+                  j.async = true;
+                  j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+                  if (nc) j.setAttribute('nonce', nc);
+                  f.parentNode.insertBefore(j,f);
+                })(window,document,'script','dataLayer',GTM_ID,nonce);
+              };
+
+              // Użytkownik rusza palcem, klika, scrolluje – natychmiast strzelamy GTM.
+              // Przeglądarka dławi się z ładowaniem grafiki? Odczekaj i wstrzyknij, kiedy najgorsze minie (setTimeout).
+              ['scroll', 'mousemove', 'touchstart', 'click', 'keydown'].forEach(function(e) {
+                window.addEventListener(e, loadGTM, { once: true, passive: true });
+              });
+              setTimeout(loadGTM, 3500);
 
               // 4) Publiczne API dla banera
               window.__CONSENT_APPLIED__ = false;
