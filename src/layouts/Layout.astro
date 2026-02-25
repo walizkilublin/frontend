@@ -67,7 +67,7 @@ const ogType = globalSeo?.openGraph?.ogType || 'website';
 ---
 
 <!doctype html>
-<html lang="pl" class="scroll-smooth">
+<html lang="pl">
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content={metaViewport} />
@@ -103,6 +103,20 @@ const ogType = globalSeo?.openGraph?.ogType || 'website';
 
         <ClientRouter />
 
+
+		{/* --- INTELIGENTNY SCROLL --- */}
+        {/* Wyłącza smooth-scroll na czas przechodzenia między podstronami, żeby nie było efektu zjeżdżania przy zamykaniu popupu */}
+        <script is:inline>
+            document.addEventListener('astro:before-preparation', () => {
+                document.documentElement.style.scrollBehavior = 'auto';
+            });
+            document.addEventListener('astro:page-load', () => {
+                setTimeout(() => {
+                    document.documentElement.style.scrollBehavior = 'smooth';
+                }, 10); // Przywraca płynność tuż po natychmiastowym przeskoku
+            });
+        </script>
+		
         {/* ===== GTM: Twój autorski, zoptymalizowany loader Consent Mode v2 ===== */}
         {GTM_ID && (
           <script is:inline nonce={nonce} define:vars={{ GTM_ID, nonce }}>

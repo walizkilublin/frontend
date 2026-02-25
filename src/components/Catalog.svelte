@@ -110,8 +110,9 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {#each filteredProducts as product, index (getUniqueId(product, index))}
         <a 
-          href={`/produkt/${product.slug || product.documentId}`}
-          animate:flip={{ duration: 400 }} 
+          href={`/produkt/${product.slug || product.documentId}#katalog`}
+          data-astro-prefetch="hover"
+          animate:flip={{ duration: 400 }}
           in:scale={{ duration: 300, start: 0.95 }}
           out:fade={{ duration: 200 }}
           class="group relative bg-surface border border-border-tech hover:border-vantablack transition-colors duration-300 overflow-hidden flex flex-col cursor-pointer block"
