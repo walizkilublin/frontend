@@ -63,6 +63,7 @@ export default async (request: Request, context: Context) => {
     const frameSrc = [
         "'self'",
         'https://www.google.com',
+        'https://maps.google.com',
         'https://www.googletagmanager.com',
         'http://googleusercontent.com',
         'https://googleusercontent.com'
@@ -118,7 +119,8 @@ export default async (request: Request, context: Context) => {
     );
 
     // Zabezpieczenia Cross-Origin
-    headers.set('Cross-Origin-Embedder-Policy', 'credentialless');
+    // headers.set('Cross-Origin-Embedder-Policy', 'credentialless');
+    headers.set('Cross-Origin-Embedder-Policy', 'unsafe-none');
     headers.set('Cross-Origin-Opener-Policy', 'same-origin');
     
     // ZMIANA NA CROSS-ORIGIN: Konieczne, aby nie zablokowało zdjęć z zewnętrznego serwera (Cloudinary)
