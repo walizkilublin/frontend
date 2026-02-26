@@ -1,7 +1,7 @@
 ---
 // Import globalnych styli Tailwind v4 (zawiera nasz grain overlay i kolory)
 import '../styles/global.css';
-// import { ClientRouter } from 'astro:transitions';
+import { ClientRouter } from 'astro:transitions';
 import fetchApi from '../lib/strapi';
 
 // IMPORT BANERA CIASTECZEK ORAZ PRELOADERA
@@ -121,7 +121,7 @@ const ogType = globalSeo?.openGraph?.ogType || 'website';
                 }
             })();
         </script>
-        <!-- <ClientRouter /> -->
+        <ClientRouter />
 
 
 		{/* --- INTELIGENTNY SCROLL --- */}
@@ -136,7 +136,38 @@ const ogType = globalSeo?.openGraph?.ogType || 'website';
                 }, 10); // Przywraca płynność tuż po natychmiastowym przeskoku
             });
         </script>
-		
+
+{/* ===== GTM: Partytown (W Web Workerze) + Consent Mode v2 ===== */}
+        {GTM_ID && (
+          <>
+            {/* 1) Inicjalizacja dataLayer i domyślne zgody na GŁÓWNYM wątku (Działa natychmiast) */}
+            <script is:inline nonce={nonce}>
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){window.dataLayer.push(arguments);}
+              window.gtag = gtag;
+
+              // Domyślne zablokowanie śledzenia (Consent Mode v2)
+              gtag('consent', 'default', {
+                ad_storage: 'denied',
+                analytics_storage: 'denied',
+                ad_user_data: 'denied',
+                ad_personalization: 'denied',
+                wait_for_update: 500
+              });
+
+              // Sygnał startowy dla GTM
+              window.dataLayer.push({
+                'gtm.start': new Date().getTime(),
+                event: 'gtm.js'
+              });
+            </script>
+
+            {/* 2) Właściwy silnik GTM ląduje w tle! Zwróć uwagę na type="text/partytown" */}
+            <script type="text/partytown" src={`https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`} nonce={nonce}></script>
+          </>
+        )}
+
+<!-- 		
         {/* ===== GTM: Elitarny, leniwy loader Consent Mode v2 (Zoptymalizowany pod PageSpeed) ===== */}
         {GTM_ID && (
           <script is:inline nonce={nonce} define:vars={{ GTM_ID, nonce }}>
@@ -193,7 +224,7 @@ const ogType = globalSeo?.openGraph?.ogType || 'website';
               };
             })();
           </script>
-        )}
+        )} -->
         
     </head>
     <body class="bg-ghost-white text-vantablack font-sans antialiased min-h-screen relative selection:bg-signal-orange selection:text-white">

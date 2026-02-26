@@ -9,6 +9,8 @@ import netlify from '@astrojs/netlify';
 
 import sitemap from '@astrojs/sitemap';
 
+import partytown from '@astrojs/partytown';
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://walizki-lublin.pl',
@@ -18,7 +20,16 @@ export default defineConfig({
     inlineStylesheets: 'always'
   },
 
-  integrations: [svelte(), sitemap()],
+  integrations: [
+    svelte(), 
+    sitemap(), 
+    partytown({
+      config: {
+        // Przekazujemy zdarzenia z naszego Cookie Bannera do Workera GTM
+        forward: ["dataLayer.push", "gtag"],
+      },
+    })
+  ],
 
   vite: {
     plugins: [tailwindcss()],

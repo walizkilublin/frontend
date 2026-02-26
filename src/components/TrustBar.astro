@@ -49,55 +49,69 @@
 
 {/* Piekielnie szybki skrypt Vanilla JS wykonujący tę samą magię co Svelte Tweened */}
 <script is:inline>
-  document.addEventListener('astro:page-load', () => {
-    const section = document.getElementById('trust-bar');
-    if (!section) return;
+  (function() {
+    function initTrustBar() {
+      const section = document.getElementById('trust-bar');
+      // Zabezpieczenie przed podwójnym odpaleniem
+      if (!section || section.classList.contains('is-initialized')) return;
+      section.classList.add('is-initialized');
 
-    const yearsEl = document.getElementById('trust-years');
-    const soldEl = document.getElementById('trust-sold');
-    const shippingEl = document.getElementById('trust-shipping');
+      const yearsEl = document.getElementById('trust-years');
+      const soldEl = document.getElementById('trust-sold');
+      const shippingEl = document.getElementById('trust-shipping');
 
-    // Odpowiednik svelte/easing cubicOut
-    function cubicOut(t) {
-      return 1 - Math.pow(1 - t, 3);
-    }
+      // Odpowiednik svelte/easing cubicOut
+      function cubicOut(t) {
+        return 1 - Math.pow(1 - t, 3);
+      }
 
-    // Funkcja odliczająca płynnie do celu
-    function animateValue(el, target, duration) {
-      if (!el) return;
-      let start = null;
+      // Funkcja odliczająca płynnie do celu
+      function animateValue(el, target, duration) {
+        if (!el) return;
+        let start = null;
 
-      function update(timestamp) {
-        if (!start) start = timestamp;
-        let timeFraction = (timestamp - start) / duration;
-        if (timeFraction > 1) timeFraction = 1;
+        function update(timestamp) {
+          if (!start) start = timestamp;
+          let timeFraction = (timestamp - start) / duration;
+          if (timeFraction > 1) timeFraction = 1;
 
-        const progress = cubicOut(timeFraction);
-        el.textContent = Math.floor(progress * target);
+          const progress = cubicOut(timeFraction);
+          el.textContent = Math.floor(progress * target);
 
-        if (timeFraction < 1) {
-          requestAnimationFrame(update);
+          if (timeFraction < 1) {
+            requestAnimationFrame(update);
+          }
         }
+        requestAnimationFrame(update);
       }
-      requestAnimationFrame(update);
+
+      const observer = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          // Dodajemy klasę, która wyzwala CSS dla gradientu i pulsu
+          section.classList.add('is-visible');
+          
+          // Odpalamy liczniki do wartości docelowych z odpowiadającymi czasami
+          animateValue(yearsEl, 20, 1500);
+          animateValue(soldEl, 50, 2000);
+          animateValue(shippingEl, 24, 1000);
+          
+          observer.disconnect();
+        }
+      }, { threshold: 0.5 });
+
+      observer.observe(section);
     }
 
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        // Dodajemy klasę, która wyzwala CSS dla gradientu i pulsu
-        section.classList.add('is-visible');
-        
-        // Odpalamy liczniki do wartości docelowych z odpowiadającymi czasami
-        animateValue(yearsEl, 20, 1500);
-        animateValue(soldEl, 50, 2000);
-        animateValue(shippingEl, 24, 1000);
-        
-        observer.disconnect();
-      }
-    }, { threshold: 0.5 });
+    // 1. Uruchomienie standardowe (klasyczny tryb bez ClientRoutera)
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initTrustBar);
+    } else {
+      initTrustBar();
+    }
 
-    observer.observe(section);
-  });
+    // 2. Zabezpieczenie na przyszłość (jeśli kiedyś przywrócisz ClientRoutera SPA w Astro)
+    document.addEventListener('astro:page-load', initTrustBar);
+  })();
 </script>
 
 <style>
