@@ -1,25 +1,34 @@
 ---
+// Zaktualizowany interfejs Props przyjmujący obiekt "settings" z index.astro
 export interface Props {
-  phone?: string;
-  email?: string;
-  companyName?: string;
-  nip?: string;
-  address?: string;
-  workingHours?: string;
+  settings?: any;
 }
 
-const {
-  phone = "+48 500 600 700",
-  email = "b2b@hurtownia-b2b.pl",
-  companyName = "HURTOWNIA BAGAŻU SP. Z O.O.",
-  nip = "1234567890",
-  address = "ul. Skautów 11b, 20-000 Lublin",
-  workingHours = "Pon - Pt: 08:00 - 16:00"
-} = Astro.props;
+// Odbieramy obiekt settings. Jeśli go nie ma, podstawiamy pusty obiekt, 
+// aby nie wywalić błędów przy próbie odczytu.
+const { settings = {} } = Astro.props;
 
-// Generujemy czysty link do trasy w Google Maps bazując na adresie
-// (Poprawiłem też mały błąd składniowy z brakiem $ przed klamerką z Twojego starego kodu)
-const mapsRouteUrl = `https://www.google.com/maps/dir/?api=1&destination=$${encodeURIComponent(address)}`;
+// Mapujemy dane ze Strapi na zmienne. 
+// Zachowujemy Twoje doskonałe wartości domyślne na wypadek, gdyby pole w Strapi było puste.
+// Pola takie jak nip czy companyName zostają na razie statyczne/domyślne, 
+// ale jeśli kiedyś dodasz je do "global_settings" w Strapi, same się podmienią!
+const phone = settings.phone_main || "+48 500 600 700";
+const email = settings.email_contact || "b2b@hurtownia-b2b.pl";
+const address = settings.warehouse_address || "ul. Skautów 11b, 20-000 Lublin";
+const companyName = settings.company_name || "HURTOWNIA BAGAŻU SP. Z O.O."; 
+const nip = settings.company_nip || "1234567890";
+const workingHours = settings.working_hours || "Pon - Pt: 08:00 - 16:00";
+
+// Zabezpieczamy kodowanie URL dla zapytań
+const encodedAddress = encodeURIComponent(address);
+
+// 1. Dynamiczny URL do wyznaczania trasy (Google Maps Directions)
+// (Poprawiona interpolacja z $ przed {encodedAddress})
+const mapsRouteUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodedAddress}`;
+
+// 2. Dynamiczny URL do osadzenia w iframe (Google Maps Embed bez klucza API, bazujący na zapytaniu 'q')
+// (Poprawiona interpolacja z $ przed {encodedAddress})
+const mapEmbedUrl = `https://maps.google.com/maps?q=${encodedAddress}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
 ---
 
 <footer id="kontakt" class="relative bg-vantablack text-ghost-white border-t-4 border-signal-orange overflow-hidden z-20">
@@ -65,7 +74,7 @@ const mapsRouteUrl = `https://www.google.com/maps/dir/?api=1&destination=$${enco
           <span class="text-[10px] font-mono font-bold tracking-widest text-cool-grey uppercase mb-6">Dane Firmy</span>
           <p class="text-sm font-bold uppercase tracking-widest text-ghost-white mb-2">{companyName}</p>
           <p class="text-xs font-mono text-cool-grey mb-1">NIP: {nip}</p>
-          <p class="text-xs font-mono text-cool-grey mb-6">{address}</p>
+          <p class="text-xs font-mono text-cool-grey mb-6 whitespace-pre-line">{address}</p>
           
           <div class="border-l-2 border-signal-orange pl-4 mb-8">
             <p class="text-[10px] font-mono text-cool-grey uppercase tracking-widest mb-1">Godziny Magazynu</p>
@@ -80,15 +89,15 @@ const mapsRouteUrl = `https://www.google.com/maps/dir/?api=1&destination=$${enco
         <div class="flex flex-col relative border border-ghost-white/10 p-2 bg-white/5 h-full">
           <div class="w-full h-64 md:h-full min-h-[250px] bg-vantablack relative overflow-hidden group">
             <iframe 
-              src="https://maps.google.com/maps?q=Lublin&t=&z=13&ie=UTF8&iwloc=&output=embed" 
+              src={mapEmbedUrl}
               title="Mapa dojazdu do hurtowni"
-              class="absolute inset-0 w-full h-full border-0 filter grayscale invert-[90%] contrast-[1.2] opacity-70 group-hover:opacity-100 transition-opacity duration-500" 
+              class="absolute inset-0 w-full h-full border-0 filter grayscale invert-[90%] contrast-[1.2] opacity-70 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none group-hover:pointer-events-auto" 
               allowfullscreen="" 
               loading="lazy" 
               referrerpolicy="no-referrer-when-downgrade"
             ></iframe>
             
-            <div class="absolute inset-0 pointer-events-none flex items-center justify-center mix-blend-difference opacity-50">
+            <div class="absolute inset-0 pointer-events-none flex items-center justify-center mix-blend-difference opacity-50 group-hover:opacity-0 transition-opacity duration-500">
               <div class="w-8 h-8 border border-signal-orange rounded-full flex items-center justify-center">
                 <div class="w-1 h-1 bg-signal-orange rounded-full"></div>
               </div>

@@ -8,7 +8,7 @@ import Process from '../components/Process.astro';
 import Faq from '../components/Faq.astro';
 import ContactForm from '../components/ContactForm.svelte';
 import Footer from '../components/Footer.astro';
-import fetchApi from '../lib/strapi';
+import fetchApi from '../lib/strapi'; // <-- TYLKO TO ZMIENIONE (usunięto getGlobalSettings)
 
 const STRAPI_URL = import.meta.env.PUBLIC_STRAPI_URL || 'http://localhost:1337';
 
@@ -22,6 +22,8 @@ try {
 
 const data = globalSettings?.data || {
   phone_main: "+48 500 600 700",
+  email_contact: "kontakt@walizki-lublin.pl",
+  warehouse_address: "ul. Przykładowa 1\n20-000 Lublin",
   hero_headline_line1: "HURTOWNIA BAGAŻU",
   hero_headline_line2: "OD 2003",
   hero_subheadline: "Zaopatrujemy liderów rynku detalicznego. Bezpieczeństwo. Terminowość. Marża.",
@@ -105,14 +107,7 @@ try {
     </section>
 
     <slot />
-    <Footer 
-        phone={globalSettings.phone_main} 
-        email={globalSettings.email_main}
-        companyName={globalSettings.company_name}
-        nip={globalSettings.company_nip}
-        address={globalSettings.company_address}
-        workingHours={globalSettings.working_hours}
-      />
+    <Footer settings={data} />
 
   </main>
 </Layout>

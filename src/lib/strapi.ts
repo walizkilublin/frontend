@@ -81,3 +81,31 @@ export default async function fetchApi<T>({
 
   throw new Error("Nigdy do tego nie dojdzie, ale TypeScript lubi to wiedzieć.");
 }
+export interface GlobalSettings {
+  phone_main: string;
+  email_contact?: string;
+  warehouse_address?: string;
+  shipping_prepaid_pln: number;
+  shipping_cod_pln: number;
+  hero_headline_line1: string;
+  hero_headline_line2: string;
+  hero_subheadline: string;
+}
+
+// 2. Dedykowany serwis do pobierania ustawień
+export async function getGlobalSettings(): Promise<GlobalSettings | null> {
+  try {
+    const response = await fetchApi<any>({ 
+      endpoint: 'global-setting',
+      // Wymuszamy pobranie wszystkich komponentów (w tym ewentualnego SEO)
+      query: { populate: '*' } 
+    });
+
+    // Zabezpieczenie na wypadek różnej struktury odpowiedzi Strapi v4/v5
+    const data = response?.data?.attributes || response?.data || response;
+    return data as GlobalSettings;
+  } catch (error) {
+    console.error('❌ [Strapi API] Błąd pobierania Global Settings:', error);
+    return null;
+  }
+}
