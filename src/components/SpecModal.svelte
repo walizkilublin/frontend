@@ -41,9 +41,27 @@
     if (e.key === 'Escape' && closeLink) closeLink.click();
   }
 
+  // --- ZMIANA: OPTYMALIZACJA ZDJĘĆ I OBSŁUGA CLOUDINARY ---
+  function getImageUrl(url) {
+    if (!url) return '';
+    
+    // Jeśli to zewnętrzny URL (np. Cloudinary)
+    if (url.startsWith('http')) {
+      // Wstrzyknięcie parametrów optymalizacji Cloudinary (auto format, auto jakość, obraz w wysokiej jakości w_1000)
+      if (url.includes('res.cloudinary.com')) {
+        return url.replace('/image/upload/', '/image/upload/f_auto,q_auto,w_1000/');
+      }
+      return url;
+    }
+    
+    // Fallback dla plików ładowanych lokalnie ze Strapi
+    return `${strapiUrl}${url}`;
+  }
+
   // Reszta kodu pozostaje bez zmian...
   $: images = product?.images || [];
-  $: activeImageUrl = images.length > 0 ? `${strapiUrl}${images[activeImageIndex].url}` : null;
+  // ZMIANA: Użycie getImageUrl dla aktywnego zdjęcia
+  $: activeImageUrl = images.length > 0 ? getImageUrl(images[activeImageIndex].url) : null;
   $: colors = product?.colors || [];
   $: variants = product?.variants || [];
   $: activeVariant = variants[activeVariantIndex] || {};
@@ -117,7 +135,7 @@
                 class="relative w-16 h-16 shrink-0 border-2 transition-colors {i === activeImageIndex ? 'border-signal-orange' : 'border-transparent hover:border-vantablack/30'} bg-white p-1"
                 aria-label="Zmień zdjęcie"
               >
-                <img src={`${strapiUrl}${img.url}`} alt="" class="w-full h-full object-contain mix-blend-multiply" />
+                <img src={getImageUrl(img.url).replace('w_1000', 'w_200')} alt="" class="w-full h-full object-contain mix-blend-multiply" />
               </button>
             {/each}
           </div>

@@ -32,8 +32,7 @@ export default async (request: Request, context: Context) => {
         'https://www.google-analytics.com',
         'https://*.google-analytics.com',
         'https://stats.g.doubleclick.net',
-        // !!! WAŻNE: Dodaj tu domenę produkcyjną swojego Strapi, np.:
-        // 'https://api.twojahurtownia.pl',
+        'https://backend-production-9cf7.up.railway.app', // <-- DODANE: Twoja domena API na Railway
         'http://localhost:*' // Zostawiamy do testów lokalnych
     ].join(' ');
 
@@ -50,13 +49,14 @@ export default async (request: Request, context: Context) => {
         "'self'",
         'data:',
         'blob:',
-        'https://res.cloudinary.com', // Twój CDN dla zdjęć
+        'https://res.cloudinary.com', // Twój CDN dla zdjęć Cloudinary
+        'https://backend-production-9cf7.up.railway.app', // <-- DODANE: Aby nie blokowało ewentualnych ścieżek z backendu
         'https://www.google-analytics.com',
         'https://analytics.google.com',
         'https://www.googletagmanager.com',
         'https://fonts.gstatic.com',
         'https://www.gstatic.com',
-        'http://localhost:*' // Do ładowania obrazków lokalnie ze Strapi zanim podepniesz Cloudinary
+        'http://localhost:*'
     ].join(' ');
 
     // frame-src – noscript GTM oraz iFrame z Google Maps w Footerze
@@ -85,12 +85,12 @@ export default async (request: Request, context: Context) => {
         "form-action 'self'",
         "manifest-src 'self'",
         "media-src 'self'",
-        'upgrade-insecure-requests', // Wymusza ładowanie wszystkiego po HTTPS (np. tej mapy HTTP z footera)
+        'upgrade-insecure-requests', // Wymusza ładowanie wszystkiego po HTTPS
     ].join('; ');
 
     // Aplikowanie potężnych nagłówków bezpieczeństwa
     headers.set('Content-Security-Policy', csp);
-    headers.set('X-Frame-Options', 'DENY'); // Nikt nie wsadzi Twojej strony w iframe (ochrona przed clickjackingiem)
+    headers.set('X-Frame-Options', 'DENY'); // Ochrona przed clickjackingiem
     headers.set('X-Content-Type-Options', 'nosniff');
     headers.set('X-XSS-Protection', '1; mode=block');
     headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -119,11 +119,8 @@ export default async (request: Request, context: Context) => {
     );
 
     // Zabezpieczenia Cross-Origin
-    // headers.set('Cross-Origin-Embedder-Policy', 'credentialless');
     headers.set('Cross-Origin-Embedder-Policy', 'unsafe-none');
     headers.set('Cross-Origin-Opener-Policy', 'same-origin');
-    
-    // ZMIANA NA CROSS-ORIGIN: Konieczne, aby nie zablokowało zdjęć z zewnętrznego serwera (Cloudinary)
     headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
 
     headers.delete('X-Page-Nonce');

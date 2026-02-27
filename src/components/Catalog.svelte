@@ -70,6 +70,23 @@
   function getUniqueId(product, index) {
     return `${product.itemType}-${product.documentId || product.id || index}-${product.model_sku || 'no-sku'}`;
   }
+
+  // --- ZMIANA: OPTYMALIZACJA ZDJĘĆ I OBSŁUGA CLOUDINARY ---
+  function getImageUrl(url) {
+    if (!url) return '';
+    
+    // Jeśli to zewnętrzny URL (np. Cloudinary)
+    if (url.startsWith('http')) {
+      // Wstrzyknięcie parametrów optymalizacji Cloudinary (auto format, auto jakość, miniatura szerokości 600px)
+      if (url.includes('res.cloudinary.com')) {
+        return url.replace('/image/upload/', '/image/upload/f_auto,q_auto,w_600/');
+      }
+      return url;
+    }
+    
+    // Fallback dla plików ładowanych lokalnie ze Strapi
+    return `${strapiUrl}${url}`;
+  }
 </script>
 
 <section id="katalog" class="relative w-full bg-ghost-white py-24 min-h-screen z-30">
@@ -136,7 +153,7 @@
           <div class="relative w-full aspect-[4/3] bg-[#E8EAEF] overflow-hidden flex items-center justify-center p-8">
             {#if product.images && product.images.length > 0 && product.images[0]?.url}
               <img 
-                src="{strapiUrl}{product.images[0].url}" 
+                src={getImageUrl(product.images[0].url)} 
                 alt={product.name} 
                 class="w-full h-full object-contain mix-blend-multiply transition-transform duration-700 ease-out group-hover:scale-110"
               />
