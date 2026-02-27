@@ -17,9 +17,38 @@
   let activeImageIndex = 0;
   let activeVariantIndex = 0;
   let isDescriptionExpanded = false;
-  
-  // ZMIANA: Stan odpowiedzialny za pełnoekranowe powiększenie zdjęcia
   let isZoomed = false;
+
+  // --- LOGIKA SWIPE (DOTYK) ---
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  function handleTouchStart(e) {
+    touchStartX = e.changedTouches[0].screenX;
+  }
+
+  function handleTouchEnd(e) {
+    touchEndX = e.changedTouches[0].screenX;
+    handleSwipe();
+  }
+
+  function handleSwipe() {
+    const swipeThreshold = 50; 
+    if (touchEndX < touchStartX - swipeThreshold) nextImage();
+    if (touchEndX > touchStartX + swipeThreshold) prevImage();
+  }
+
+  function nextImage(e) {
+    if (e) e.stopPropagation();
+    if (images.length <= 1) return;
+    activeImageIndex = activeImageIndex < images.length - 1 ? activeImageIndex + 1 : 0;
+  }
+
+  function prevImage(e) {
+    if (e) e.stopPropagation();
+    if (images.length <= 1) return;
+    activeImageIndex = activeImageIndex > 0 ? activeImageIndex - 1 : images.length - 1;
+  }
 
   onMount(() => {
     document.body.style.overflow = 'hidden';
@@ -35,7 +64,6 @@
     }
   }
 
-  // ZMIANA: Inteligentna obsługa klawisza Escape (najpierw zamyka powiększenie, potem modal)
   function handleKeydown(e) {
     if (e.key === 'Escape') {
       if (isZoomed) {
@@ -43,6 +71,10 @@
       } else if (closeLink) {
         closeLink.click();
       }
+    }
+    if (!isZoomed) {
+      if (e.key === 'ArrowRight') nextImage();
+      if (e.key === 'ArrowLeft') prevImage();
     }
   }
 
@@ -100,7 +132,7 @@
 
     <div 
       role="dialog" aria-modal="true" aria-labelledby="modal-title"
-      class="relative z-10 bg-ghost-white w-full max-w-6xl max-h-full flex flex-col md:flex-row border border-vantablack/20 shadow-[0_20px_60px_rgba(0,0,0,0.6)] overflow-hidden"
+      class="relative z-10 bg-ghost-white w-full max-w-6xl max-h-full flex flex-col md:flex-row border border-vantablack/20 shadow-[0_20px_60px_rgba(0,0,0,0.6)] overflow-y-auto md:overflow-hidden"
       transition:fly={{ y: 50, duration: 400, opacity: 0 }}
     >
       
@@ -113,31 +145,64 @@
         <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </a>
 
-      <div class="w-full md:w-1/2 bg-[#E8EAEF] flex flex-col relative border-b md:border-b-0 md:border-r border-border-tech h-[45vh] md:h-auto shrink-0 overflow-hidden">
+      <div class="w-full md:w-1/2 bg-[#E8EAEF] flex flex-col relative border-b md:border-b-0 md:border-r border-border-tech h-[50vh] min-h-[50vh] md:h-auto md:min-h-0 shrink-0 overflow-hidden">
         
-        <button 
-          type="button"
-          class="relative flex-1 p-8 flex items-center justify-center min-h-0 w-full hover:bg-vantablack/5 transition-colors group cursor-zoom-in focus:outline-none"
-          on:click={() => isZoomed = true}
-          aria-label="Powiększ zdjęcie"
+        <div 
+          class="relative flex-1 flex items-center justify-center min-h-0 w-full group overflow-hidden touch-pan-y"
+          on:touchstart={handleTouchStart}
+          on:touchend={handleTouchEnd}
+          role="region"
+          aria-roledescription="carousel"
+          aria-label="Galeria zdjęć produktu"
         >
+          <button 
+            type="button"
+            class="absolute inset-0 w-full h-full cursor-zoom-in focus:outline-none z-0 hover:bg-vantablack/5 transition-colors"
+            on:click={() => isZoomed = true}
+            aria-label="Powiększ zdjęcie"
+          ></button>
+
           <span class="absolute top-4 left-4 text-[10px] font-mono text-cool-grey uppercase tracking-widest z-10 pointer-events-none">
             {itemType === 'suitcase' ? 'Wizualizacja Wariantu' : 'Wizualizacja Produktu'}
           </span>
           
-          <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm border border-border-tech text-vantablack p-2 rounded-full opacity-60 group-hover:opacity-100 transition-opacity z-10 shadow-sm md:mr-16">
+          <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm border border-border-tech text-vantablack p-2 rounded-full opacity-60 group-hover:opacity-100 transition-opacity z-10 shadow-sm md:mr-16 pointer-events-none">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
           </div>
 
-          {#if activeImageUrl}
-            <img src={activeImageUrl} alt={product.name} class="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105" />
-          {:else}
-            <div class="text-cool-grey font-mono text-xs tracking-widest opacity-50">BRAK DANYCH</div>
+          {#if images.length > 1}
+            <button 
+              type="button"
+              on:click={prevImage}
+              class="absolute left-2 md:left-4 z-10 w-10 h-10 bg-white/80 backdrop-blur border border-border-tech text-vantablack rounded-full flex items-center justify-center hover:bg-signal-orange hover:text-white transition-colors opacity-90 hover:opacity-100 focus:outline-none shadow-sm"
+              aria-label="Poprzednie zdjęcie"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </button>
+
+            <button 
+              type="button"
+              on:click={nextImage}
+              class="absolute right-2 md:right-4 z-10 w-10 h-10 bg-white/80 backdrop-blur border border-border-tech text-vantablack rounded-full flex items-center justify-center hover:bg-signal-orange hover:text-white transition-colors opacity-90 hover:opacity-100 focus:outline-none shadow-sm md:mr-16"
+              aria-label="Następne zdjęcie"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
           {/if}
-        </button>
+
+          {#if activeImageUrl}
+            <img 
+              src={activeImageUrl} 
+              alt={product.name} 
+              class="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105 pointer-events-none relative z-0" 
+            />
+          {:else}
+            <div class="text-cool-grey font-mono text-xs tracking-widest opacity-50 relative z-0">BRAK DANYCH</div>
+          {/if}
+        </div>
 
         {#if images.length > 1}
-          <div class="flex gap-2 p-4 bg-ghost-white/50 border-t border-border-tech overflow-x-auto shrink-0">
+          <div class="hidden md:flex gap-2 p-4 bg-ghost-white/50 border-t border-border-tech overflow-x-auto shrink-0">
             {#each images as img, i}
               <button 
                 on:click={() => activeImageIndex = i}
@@ -151,7 +216,7 @@
         {/if}
       </div>
 
-      <div class="w-full md:w-1/2 flex flex-col bg-ghost-white overflow-y-auto">
+      <div class="w-full md:w-1/2 flex flex-col bg-ghost-white overflow-visible md:overflow-y-auto">
         <div class="p-6 md:p-10 flex-1 flex flex-col">
           
           <div class="mb-6">
@@ -375,7 +440,7 @@
 
         </div>
 
-        <div class="bg-vantablack p-4 md:p-6 mt-auto md:sticky md:bottom-0 z-10 shrink-0">
+        <div class="bg-vantablack p-4 md:p-6 sticky bottom-0 z-20 shrink-0 mt-auto border-t border-white/10 shadow-[0_-10px_30px_rgba(0,0,0,0.2)] md:border-none md:shadow-none">
           <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4 text-ghost-white/70 text-[10px] font-mono uppercase tracking-widest border-b border-ghost-white/10 pb-4">
             <span>Dostawa: Przedpłata {shippingPrepaid} PLN</span>
             <span class="hidden sm:block">|</span>
@@ -393,24 +458,24 @@
     </div>
   </div>
 
-  {#if isZoomed && activeImageUrl}
+{#if isZoomed && activeImageUrl}
     <div 
       class="fixed inset-0 z-[9999] bg-vantablack/95 backdrop-blur-xl flex items-center justify-center p-4 cursor-zoom-out"
       transition:fade={{ duration: 250 }}
-      on:click={() => isZoomed = false}
+      on:click={(e) => e.target === e.currentTarget && (isZoomed = false)}
       on:keydown={(e) => e.key === 'Escape' && (isZoomed = false)}
       tabindex="0"
       role="button"
       aria-label="Zamknij powiększenie"
     >
-      <button class="absolute top-6 right-6 text-cool-grey hover:text-signal-orange transition-colors z-50 p-2 focus:outline-none" aria-label="Zamknij powiększenie">
+      <button class="absolute top-6 right-6 text-cool-grey hover:text-signal-orange transition-colors z-50 p-2 focus:outline-none" aria-label="Zamknij powiększenie" on:click={() => isZoomed = false}>
         <svg class="w-8 h-8 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </button>
 
-     <img 
+      <img 
         src={activeImageUrl.replace('w_1000', 'w_1920')} 
         alt="Powiększenie produktu" 
-        class="max-w-full max-h-full object-contain select-none shadow-2xl cursor-default"
+        class="max-w-full max-h-full object-contain select-none drop-shadow-2xl cursor-default pointer-events-none"
       />
     </div>
   {/if}
