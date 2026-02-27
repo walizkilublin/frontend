@@ -17,50 +17,47 @@
   let activeImageIndex = 0;
   let activeVariantIndex = 0;
   let isDescriptionExpanded = false;
+  
+  // ZMIANA: Stan odpowiedzialny za pełnoekranowe powiększenie zdjęcia
+  let isZoomed = false;
 
   onMount(() => {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = ''; };
   });
 
-  // --- INTELIGENTNE ZAMYKANIE MODALA ---
   function handleClose(e) {
-    e.preventDefault(); // Zatrzymujemy domyślne przejście linku
-    
-    // Astro View Transitions dodaje właściwość "index" do historii przeglądarki.
-    // Jeśli index > 0, wiemy na 100%, że użytkownik wędrował po naszej stronie.
+    e.preventDefault(); 
     if (window.history.state && typeof window.history.state.index === 'number' && window.history.state.index > 0) {
-      window.history.back(); // Cofa płynnie do idealnej pozycji scrolla w katalogu!
+      window.history.back(); 
     } else {
-      // Jeśli wszedł z bezpośredniego linku (index = 0 lub brak), wrzucamy go do katalogu
       window.location.href = '/#katalog';
     }
   }
 
+  // ZMIANA: Inteligentna obsługa klawisza Escape (najpierw zamyka powiększenie, potem modal)
   function handleKeydown(e) {
-    if (e.key === 'Escape' && closeLink) closeLink.click();
+    if (e.key === 'Escape') {
+      if (isZoomed) {
+        isZoomed = false;
+      } else if (closeLink) {
+        closeLink.click();
+      }
+    }
   }
 
-  // --- ZMIANA: OPTYMALIZACJA ZDJĘĆ I OBSŁUGA CLOUDINARY ---
   function getImageUrl(url) {
     if (!url) return '';
-    
-    // Jeśli to zewnętrzny URL (np. Cloudinary)
     if (url.startsWith('http')) {
-      // Wstrzyknięcie parametrów optymalizacji Cloudinary (auto format, auto jakość, obraz w wysokiej jakości w_1000)
       if (url.includes('res.cloudinary.com')) {
         return url.replace('/image/upload/', '/image/upload/f_auto,q_auto,w_1000/');
       }
       return url;
     }
-    
-    // Fallback dla plików ładowanych lokalnie ze Strapi
     return `${strapiUrl}${url}`;
   }
 
-  // Reszta kodu pozostaje bez zmian...
   $: images = product?.images || [];
-  // ZMIANA: Użycie getImageUrl dla aktywnego zdjęcia
   $: activeImageUrl = images.length > 0 ? getImageUrl(images[activeImageIndex].url) : null;
   $: colors = product?.colors || [];
   $: variants = product?.variants || [];
@@ -116,19 +113,31 @@
         <svg class="w-6 h-6 md:w-8 md:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
       </a>
 
-      <div class="w-full md:w-1/2 bg-[#E8EAEF] flex flex-col relative border-b md:border-b-0 md:border-r border-border-tech h-64 md:h-auto shrink-0">
-        <div class="relative flex-1 p-8 flex items-center justify-center">
-          <span class="absolute top-4 left-4 text-[10px] font-mono text-cool-grey uppercase tracking-widest">
+      <div class="w-full md:w-1/2 bg-[#E8EAEF] flex flex-col relative border-b md:border-b-0 md:border-r border-border-tech h-[45vh] md:h-auto shrink-0 overflow-hidden">
+        
+        <button 
+          type="button"
+          class="relative flex-1 p-8 flex items-center justify-center min-h-0 w-full hover:bg-vantablack/5 transition-colors group cursor-zoom-in focus:outline-none"
+          on:click={() => isZoomed = true}
+          aria-label="Powiększ zdjęcie"
+        >
+          <span class="absolute top-4 left-4 text-[10px] font-mono text-cool-grey uppercase tracking-widest z-10 pointer-events-none">
             {itemType === 'suitcase' ? 'Wizualizacja Wariantu' : 'Wizualizacja Produktu'}
           </span>
+          
+          <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm border border-border-tech text-vantablack p-2 rounded-full opacity-60 group-hover:opacity-100 transition-opacity z-10 shadow-sm md:mr-16">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
+          </div>
+
           {#if activeImageUrl}
-            <img src={activeImageUrl} alt={product.name} class="w-full h-full object-contain mix-blend-multiply" />
+            <img src={activeImageUrl} alt={product.name} class="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-105" />
           {:else}
             <div class="text-cool-grey font-mono text-xs tracking-widest opacity-50">BRAK DANYCH</div>
           {/if}
-        </div>
+        </button>
+
         {#if images.length > 1}
-          <div class="flex gap-2 p-4 bg-ghost-white/50 border-t border-border-tech overflow-x-auto">
+          <div class="flex gap-2 p-4 bg-ghost-white/50 border-t border-border-tech overflow-x-auto shrink-0">
             {#each images as img, i}
               <button 
                 on:click={() => activeImageIndex = i}
@@ -366,7 +375,7 @@
 
         </div>
 
-          <div class="bg-vantablack p-4 md:p-6 mt-auto md:sticky md:bottom-0 z-10 shrink-0">
+        <div class="bg-vantablack p-4 md:p-6 mt-auto md:sticky md:bottom-0 z-10 shrink-0">
           <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4 text-ghost-white/70 text-[10px] font-mono uppercase tracking-widest border-b border-ghost-white/10 pb-4">
             <span>Dostawa: Przedpłata {shippingPrepaid} PLN</span>
             <span class="hidden sm:block">|</span>
@@ -383,4 +392,26 @@
       </div>
     </div>
   </div>
+
+  {#if isZoomed && activeImageUrl}
+    <div 
+      class="fixed inset-0 z-[9999] bg-vantablack/95 backdrop-blur-xl flex items-center justify-center p-4 cursor-zoom-out"
+      transition:fade={{ duration: 250 }}
+      on:click={() => isZoomed = false}
+      on:keydown={(e) => e.key === 'Escape' && (isZoomed = false)}
+      tabindex="0"
+      role="button"
+      aria-label="Zamknij powiększenie"
+    >
+      <button class="absolute top-6 right-6 text-cool-grey hover:text-signal-orange transition-colors z-50 p-2 focus:outline-none" aria-label="Zamknij powiększenie">
+        <svg class="w-8 h-8 md:w-10 md:h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+     <img 
+        src={activeImageUrl.replace('w_1000', 'w_1920')} 
+        alt="Powiększenie produktu" 
+        class="max-w-full max-h-full object-contain select-none shadow-2xl cursor-default"
+      />
+    </div>
+  {/if}
 {/if}
