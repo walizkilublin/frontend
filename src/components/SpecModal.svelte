@@ -473,9 +473,9 @@
       </button>
 
       <img 
-        src={activeImageUrl.replace('w_1000', 'w_1920')} 
+        src={activeImageUrl.replace('f_auto,q_auto,w_1000', 'f_auto,q_auto:eco,w_1200,h_1200,c_limit,fl_progressive')} 
         alt="Powiększenie produktu" 
-        class="max-w-full max-h-full object-contain select-none drop-shadow-2xl cursor-default pointer-events-none"
+        class="w-full h-full object-contain select-none drop-shadow-2xl cursor-default pointer-events-none"
       />
     </div>
   {/if}
