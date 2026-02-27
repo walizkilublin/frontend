@@ -4,6 +4,14 @@ interface Props {
 }
 
 const { phone } = Astro.props;
+
+// --- ZMIANA: INTELIGENTNY ROUTING ---
+// Sprawdzamy, czy użytkownik jest na stronie głównej (uwzględniamy możliwe wariacje ścieżki)
+const currentPath = Astro.url.pathname;
+const isHome = currentPath === '/' || currentPath === '/index.html';
+
+// Funkcja generująca idealny link w zależności od aktualnej podstrony
+const getLink = (hash: string) => isHome ? `#${hash}` : `/#${hash}`;
 ---
 
 <header class="fixed top-0 inset-x-0 z-[5000] border-b border-border-tech bg-ghost-white/90 backdrop-blur-md transition-all duration-300" id="main-header">
@@ -24,10 +32,10 @@ const { phone } = Astro.props;
     </a>
 
     <nav class="hidden lg:flex items-center gap-10">
-      <a href="#trust-bar" class="font-bold text-sm uppercase tracking-widest text-vantablack hover:text-signal-orange transition-colors">Dlaczego My</a>      
-      <a href="#katalog" class="font-bold text-sm uppercase tracking-widest text-vantablack hover:text-signal-orange transition-colors">Katalog</a>
-      <a href="#logistyka" class="font-bold text-sm uppercase tracking-widest text-vantablack hover:text-signal-orange transition-colors">Logistyka</a>
-      <a href="#kontakt" class="font-bold text-sm uppercase tracking-widest text-vantablack hover:text-signal-orange transition-colors">Kontakt</a>
+      <a href={getLink('trust-bar')} class="font-bold text-sm uppercase tracking-widest text-vantablack hover:text-signal-orange transition-colors">Dlaczego My</a>      
+      <a href={getLink('katalog')} class="font-bold text-sm uppercase tracking-widest text-vantablack hover:text-signal-orange transition-colors">Katalog</a>
+      <a href={getLink('logistyka')} class="font-bold text-sm uppercase tracking-widest text-vantablack hover:text-signal-orange transition-colors">Logistyka</a>
+      <a href={getLink('kontakt')} class="font-bold text-sm uppercase tracking-widest text-vantablack hover:text-signal-orange transition-colors">Kontakt</a>
     </nav>
 
     <div class="flex items-center gap-4">
@@ -53,10 +61,10 @@ const { phone } = Astro.props;
     
     <div class="relative w-full h-full flex flex-col items-center justify-center menu-content">
       <nav class="flex flex-col items-center gap-8">
-        <a href="#trust-bar" class="mobile-link text-4xl font-black uppercase tracking-tighter text-ghost-white hover:text-signal-orange transition-colors">Dlaczego My</a>
-        <a href="#katalog" class="mobile-link text-4xl font-black uppercase tracking-tighter text-ghost-white hover:text-signal-orange transition-colors">Katalog</a>
-        <a href="#logistyka" class="mobile-link text-4xl font-black uppercase tracking-tighter text-ghost-white hover:text-signal-orange transition-colors">Logistyka</a>
-        <a href="#kontakt" class="mobile-link text-4xl font-black uppercase tracking-tighter text-ghost-white hover:text-signal-orange transition-colors">Kontakt</a>
+        <a href={getLink('trust-bar')} class="mobile-link text-4xl font-black uppercase tracking-tighter text-ghost-white hover:text-signal-orange transition-colors">Dlaczego My</a>
+        <a href={getLink('katalog')} class="mobile-link text-4xl font-black uppercase tracking-tighter text-ghost-white hover:text-signal-orange transition-colors">Katalog</a>
+        <a href={getLink('logistyka')} class="mobile-link text-4xl font-black uppercase tracking-tighter text-ghost-white hover:text-signal-orange transition-colors">Logistyka</a>
+        <a href={getLink('kontakt')} class="mobile-link text-4xl font-black uppercase tracking-tighter text-ghost-white hover:text-signal-orange transition-colors">Kontakt</a>
       </nav>
       <div class="absolute bottom-12 flex flex-col items-center opacity-30">
         <span class="text-xs font-mono text-cool-grey uppercase tracking-widest italic">Nomad Heritage System</span>
