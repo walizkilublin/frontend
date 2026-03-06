@@ -24,8 +24,8 @@ export const POST: APIRoute = async ({ request }) => {
 
     // 3. Wysłanie maila przez Resend
     const data = await resend.emails.send({
-      from: 'System B2B <b2b@hurtownia-b2b.pl>', // UWAGA: Musisz tu podać domenę zweryfikowaną w Resend! (lub zostawić onboarding@resend.dev do testów)
-      to: [import.meta.env.CONTACT_EMAIL || 'twoj@email.com'], // Gdzie ma przyjść mail z leada
+      from: 'System B2B <kontakt@walizkilublin.pl>', // UWAGA: Musisz tu podać domenę zweryfikowaną w Resend! (lub zostawić onboarding@resend.dev do testów)
+      to: [import.meta.env.CONTACT_EMAIL || 'kontakt@walizkilublin.pl'], // Gdzie ma przyjść mail z leada
       replyTo: email,
       subject: `Nowy Lead B2B: ${company || name}`,
       html: `
