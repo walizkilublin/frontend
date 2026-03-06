@@ -1,18 +1,20 @@
 ---
-import Layout from '../layouts/Layout.astro';
-import fetchApi from '../lib/strapi';
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import fetchApi from "../lib/strapi";
 
 // Funkcja getStaticPaths mówi Astro, jakie podstrony ma wygenerować podczas budowania (hybrydowo)
 export async function getStaticPaths() {
   let legalPages = { data: [] };
-  
+
   try {
     legalPages = await fetchApi<any>({
-      endpoint: 'legal-pages', // Upewnij się, że tak nazywa się Twój endpoint w Strapi
-      query: { populate: '*' },
+      endpoint: "legal-pages", // Upewnij się, że tak nazywa się Twój endpoint w Strapi
+      query: { populate: "*" },
     });
   } catch (error) {
-    console.error('Błąd pobierania stron prawnych:', error);
+    console.error("Błąd pobierania stron prawnych:", error);
   }
 
   return legalPages.data.map((page: any) => ({
@@ -24,42 +26,80 @@ export async function getStaticPaths() {
 const { page } = Astro.props;
 
 // Skoro mamy CKEditor 5, to zmienna page.content zawiera gotowy HTML!
-const contentHtml = page.content || '<p>Brak treści dokumentu.</p>';
+const contentHtml = page.content || "<p>Brak treści dokumentu.</p>";
 ---
 
-<Layout title={`${page.title} | Hurtownia Bagażu B2B`} description={`Dokument techniczny: ${page.title}`}>
-  <main class="pt-32 pb-24 min-h-screen bg-ghost-white relative z-10">
-    <div class="max-w-[1000px] mx-auto px-4 md:px-8">
-      
-      <div class="mb-16 border-b border-border-tech pb-8">
-        <div class="flex items-center gap-4 mb-4">
-          <span class="w-3 h-3 bg-vantablack"></span>
-          <span class="text-xs font-mono font-bold tracking-widest text-cool-grey uppercase">Dokumentacja Prawna</span>
+<Layout
+  title={`${page.title} | Hurtownia Bagażu B2B`}
+  description={`Dokument techniczny: ${page.title}`}
+>
+  <Header phone="+48 500 600 700" />
+  <main
+    class="pt-[140px] pb-24 min-h-screen bg-ghost-white relative z-10 selection:bg-signal-orange selection:text-white"
+  >
+    <div class="max-w-[1200px] mx-auto px-4 md:px-8">
+      <div class="mb-20 border-b-2 border-vantablack pb-12 animate-fade-in-up">
+        <div class="flex items-center gap-4 mb-6">
+          <span class="w-3 h-3 bg-signal-orange animate-pulse"></span>
+          <span
+            class="text-[10px] md:text-xs font-mono font-bold tracking-widest text-cool-grey uppercase"
+            >Dokumentacja Prawna</span
+          >
         </div>
-        <h1 class="text-4xl md:text-5xl lg:text-6xl font-black uppercase tracking-tighter text-vantablack leading-none">
+        <h1
+          class="text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter text-vantablack leading-none"
+        >
           {page.title}
         </h1>
       </div>
-      
-      <article 
-        class="prose prose-lg max-w-none 
-               prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tighter prose-headings:text-vantablack
-               prose-p:text-cool-grey prose-p:font-medium prose-p:leading-relaxed
-               prose-a:text-signal-orange prose-a:font-bold prose-a:no-underline hover:prose-a:underline
-               prose-strong:text-vantablack prose-strong:font-black
-               prose-ul:text-cool-grey prose-li:marker:text-signal-orange
-               prose-table:border-collapse prose-td:border prose-td:border-border-tech prose-th:border prose-th:border-border-tech prose-th:bg-surface"
+
+      <!-- Custom CSS do parsowania brudnego HTML ze Strapi -->
+      <article
+        class="block w-full text-vantablack overflow-hidden
+               [&>h1]:text-4xl [&>h1]:md:text-5xl [&>h1]:font-black [&>h1]:uppercase [&>h1]:tracking-tighter [&>h1]:mt-16 [&>h1]:mb-6
+               [&>h2]:text-3xl [&>h2]:md:text-4xl [&>h2]:font-black [&>h2]:uppercase [&>h2]:tracking-tighter [&>h2]:mt-16 [&>h2]:mb-6 [&>h2]:pb-4 [&>h2]:border-b [&>h2]:border-border-tech
+               [&>h3]:text-2xl [&>h3]:font-black [&>h3]:uppercase [&>h3]:tracking-tight [&>h3]:mt-12 [&>h3]:mb-4
+               [&>h4]:text-xl [&>h4]:font-bold [&>h4]:uppercase [&>h4]:tracking-tight [&>h4]:mt-8 [&>h4]:mb-3
+               [&>p]:text-base [&>p]:md:text-lg [&>p]:font-medium [&>p]:text-cool-grey [&>p]:leading-[1.8] [&>p]:mb-8
+               [&>ul]:list-disc [&>ul]:list-inside [&>ul]:mb-8 [&>ul]:text-cool-grey [&>ul]:font-medium [&>ul]:space-y-3 [&>ul>li>strong]:text-vantablack
+               [&>ol]:list-decimal [&>ol]:list-inside [&>ol]:mb-8 [&>ol]:text-cool-grey [&>ol]:font-medium [&>ol]:space-y-3
+               [&_li]:text-base [&_li]:md:text-lg [&_li]:leading-[1.8]
+               [&>blockquote]:border-l-[6px] [&>blockquote]:border-signal-orange [&>blockquote]:pl-6 [&>blockquote]:py-2 [&>blockquote]:my-8 [&>blockquote]:bg-surface/50 [&>blockquote>p]:text-vantablack [&>blockquote>p]:font-bold [&>blockquote>p]:m-0
+               [&>a]:text-signal-orange [&>a]:font-bold [&>a]:underline [&>a]:decoration-2 [&>a]:underline-offset-4 hover:[&>a]:text-vantablack hover:[&>a]:decoration-vantablack [&>a]:transition-colors
+               [&>strong]:font-black [&>strong]:text-vantablack [&>strong]:bg-surface [&>strong]:px-1
+               [&>table]:w-full [&>table]:mb-12 [&>table]:border-collapse [&>table]:border-y-[3px] [&>table]:border-vantablack [&_th]:bg-surface/80 [&_th]:text-left [&_th]:font-black [&_th]:uppercase [&_th]:tracking-widest [&_th]:text-[10px] [&_th]:p-4 [&_th]:border-b [&_th]:border-border-tech [&_td]:p-4 [&_td]:border-b [&_td]:border-border-tech [&_td]:text-sm [&_td]:text-cool-grey [&_td]:font-medium"
       >
         <Fragment set:html={contentHtml} />
       </article>
 
-      <div class="mt-20 pt-8 border-t border-border-tech">
-        <a href="/" class="inline-flex items-center gap-3 text-xs font-mono font-bold tracking-widest text-vantablack uppercase hover:text-signal-orange transition-colors duration-300">
-          <svg class="w-4 h-4 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
-          Powrót do Centrali
+      <div
+        class="mt-24 pt-12 border-t-4 border-vantablack flex justify-between items-center"
+      >
+        <a
+          href="/"
+          class="inline-flex items-center gap-3 bg-white border border-border-tech text-vantablack font-bold uppercase tracking-widest text-[10px] px-6 md:px-8 py-4 hover:border-signal-orange hover:text-signal-orange transition-colors duration-300"
+        >
+          <svg
+            class="w-4 h-4 rotate-180"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            ><path
+              stroke-linecap="square"
+              stroke-linejoin="miter"
+              stroke-width="2"
+              d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg
+          >
+          <span class="hidden md:block">Powrót do Centrali</span>
+          <span class="block md:hidden">Wróć</span>
         </a>
+        <div
+          class="text-[10px] font-mono text-cool-grey uppercase tracking-widest"
+        >
+          SYS_DOC_VER: {new Date().getFullYear()}
+        </div>
       </div>
-
     </div>
   </main>
+  <Footer />
 </Layout>
