@@ -30,7 +30,7 @@ export const POST: APIRoute = async ({ request }) => {
       subject: `Nowy Lead B2B: ${company || name}`,
       html: `
         <div style="font-family: monospace; background-color: #f4f4f5; padding: 20px;">
-          <h2 style="color: #FF4500;">NOWY PROTOKÓŁ B2B</h2>
+          <h2 style="color: #FF4500;">NOWA WIADOMOŚĆ ZE STRONY</h2>
           <hr/>
           <p><strong>Zgłaszający:</strong> ${name}</p>
           <p><strong>Firma:</strong> ${company || 'Brak'}</p>
