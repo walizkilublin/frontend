@@ -35,3 +35,6 @@ pnpm-debug.log*
 /e2e
 /tests
 playwright.config.ts
+
+# context
+context

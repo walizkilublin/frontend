@@ -12,15 +12,32 @@
     bot_field: '' // HONEYPOT
   };
 
+  // Lokalna domyślna walidacja przed wysłaniem do serwera (Zabezpieczenie przed edycją HTML w konsoli przeglądarki)
+  function sanitizeInput(str) {
+    if (!str) return '';
+    return str.replace(/[<>]/g, '').trim(); 
+  }
+
   async function handleSubmit() {
     status = 'loading';
     errorMessage = '';
 
     try {
+      // Oczyszczanie przed wysyłką (Data Sanitization)
+      const sanitizedData = {
+        name: sanitizeInput(formData.name),
+        company: sanitizeInput(formData.company),
+        nip: sanitizeInput(formData.nip),
+        phone: sanitizeInput(formData.phone),
+        email: sanitizeInput(formData.email),
+        message: sanitizeInput(formData.message),
+        bot_field: formData.bot_field // Honeypot musi pozostać nienaruszony (jeśli wypełniony to serwer i tak odrzuci)
+      };
+
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(sanitizedData)
       });
 
       if (response.ok) {
@@ -74,33 +91,39 @@
         <div class="flex flex-col md:flex-row border-b border-border-tech">
           <div class="w-full md:w-1/2 flex flex-col border-b md:border-b-0 md:border-r border-border-tech py-6 px-4 md:px-8 group">
             <label for="name" class="text-[10px] font-mono font-bold text-cool-grey tracking-widest uppercase mb-2 group-focus-within:text-signal-orange transition-colors">Imię i Nazwisko *</label>
-            <input type="text" id="name" required bind:value={formData.name} disabled={status === 'loading'} class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold text-vantablack focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50" placeholder="Wprowadź dane" />
+            <!-- Tylko litery, spacje i myślniki. Brak cyfr. Min 3 znaki, Max 100. -->
+            <input type="text" id="name" required minlength="3" maxlength="100" pattern="^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s\-]+$" title="Imię i nazwisko może zawierać tylko litery i myślniki" bind:value={formData.name} disabled={status === 'loading'} class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold text-vantablack focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50" placeholder="Wprowadź dane" />
           </div>
           <div class="w-full md:w-1/2 flex flex-col py-6 px-4 md:px-8 group">
             <label for="company" class="text-[10px] font-mono font-bold text-cool-grey tracking-widest uppercase mb-2 group-focus-within:text-signal-orange transition-colors">Nazwa Firmy</label>
-            <input type="text" id="company" bind:value={formData.company} disabled={status === 'loading'} class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold text-vantablack focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50" placeholder="Opcjonalnie" />
+            <!-- Max znaków: 150 -->
+            <input type="text" id="company" maxlength="150" bind:value={formData.company} disabled={status === 'loading'} class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold text-vantablack focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50" placeholder="Opcjonalnie" />
           </div>
         </div>
 
         <div class="flex flex-col md:flex-row border-b border-border-tech">
           <div class="w-full md:w-1/2 flex flex-col border-b md:border-b-0 md:border-r border-border-tech py-6 px-4 md:px-8 group">
             <label for="email" class="text-[10px] font-mono font-bold text-cool-grey tracking-widest uppercase mb-2 group-focus-within:text-signal-orange transition-colors">Adres Email *</label>
-            <input type="email" id="email" required bind:value={formData.email} disabled={status === 'loading'} class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold text-vantablack focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50" placeholder="kontakt@domena.pl" />
+            <!-- Wymuszenie poprawnego formatu adresu email, max 100 znaków -->
+            <input type="email" id="email" required maxlength="100" pattern={"[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$"} title="Wprowadź poprawny adres email" bind:value={formData.email} disabled={status === 'loading'} class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold text-vantablack focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50" placeholder="kontakt@domena.pl" />
           </div>
           <div class="w-full md:w-1/2 flex flex-col py-6 px-4 md:px-8 group">
             <label for="phone" class="text-[10px] font-mono font-bold text-cool-grey tracking-widest uppercase mb-2 group-focus-within:text-signal-orange transition-colors">Telefon Kontaktowy *</label>
-            <input type="tel" id="phone" required bind:value={formData.phone} disabled={status === 'loading'} class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold text-vantablack focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50" placeholder="+48 000 000 000" />
+            <!-- Numery telefonów, spacje, plus. Min 9 znaków, Max 20 znaków. -->
+            <input type="tel" id="phone" required minlength="9" maxlength="20" pattern={"^[+]?[(]?[0-9]{3}[)]?[-\\s.]?[0-9]{3}[-\\s.]?[0-9]{3,6}$"} title="Wprowadź prawidłowy numer telefonu z użyciem cyfr" bind:value={formData.phone} disabled={status === 'loading'} class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold text-vantablack focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50" placeholder="+48 000 000 000" />
           </div>
         </div>
 
         <div class="flex flex-col border-b border-border-tech py-6 px-4 md:px-8 group">
           <label for="nip" class="text-[10px] font-mono font-bold text-cool-grey tracking-widest uppercase mb-2 group-focus-within:text-signal-orange transition-colors">NIP (Opcjonalnie)</label>
-          <input type="text" id="nip" bind:value={formData.nip} disabled={status === 'loading'} class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold text-vantablack focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50" placeholder="PL..." />
+          <!-- Numery NIP i litery kraju, max 20, by uniknąć overflowów, dopuszczalne myślniki -->
+          <input type="text" id="nip" maxlength="20" pattern={"^[a-zA-Z]{0,2}[0-9-]+$"} title="Wprowadź prawidłowy NIP firmy" bind:value={formData.nip} disabled={status === 'loading'} class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold text-vantablack focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50" placeholder="PL..." />
         </div>
 
         <div class="flex flex-col border-b border-border-tech py-6 px-4 md:px-8 group bg-surface/30">
           <label for="message" class="text-[10px] font-mono font-bold text-cool-grey tracking-widest uppercase mb-4 group-focus-within:text-signal-orange transition-colors">Treść Zapytania *</label>
-          <textarea id="message" required bind:value={formData.message} disabled={status === 'loading'} rows="3" class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold text-vantablack focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50 resize-none" placeholder="Wpisz treść protokołu..."></textarea>
+          <!-- Limit znaków zapytania zabezpieczający przed zalaniem bazy (Max 2000 znaków) -->
+          <textarea id="message" required minlength="10" maxlength="2000" bind:value={formData.message} disabled={status === 'loading'} rows="3" class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold text-vantablack focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50 resize-none" placeholder="Wpisz treść protokołu..."></textarea>
         </div>
 
         {#if status === 'error'}
