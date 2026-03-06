@@ -12,6 +12,31 @@
     bot_field: "", // HONEYPOT
   };
 
+  // World-Class Real-Time Validation: Reaktywne blokowanie błędnych znaków podczas pisania
+  $: {
+    if (formData.name) {
+      // Wyrzuca cyfry i znaki specjalne (zostawia tylko litery, spacje i myślniki)
+      formData.name = formData.name.replace(/[^a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s\-]/g, '');
+    }
+    if (formData.nip) {
+      // NIP tylko wielkie litery i cyfry lub myślniki
+      formData.nip = formData.nip.replace(/[^a-zA-Z0-9\-]/g, '').toUpperCase();
+    }
+    if (formData.phone) {
+      // Telefon tylko plus, nawiasy, cyfry, spacje i myślniki
+      formData.phone = formData.phone.replace(/[^\d\s+()\-]/g, '');
+    }
+  }
+
+  // Live Error States (Wizualny Feedback na żywo)
+  $: isEmailTouched = formData.email.length > 0;
+  $: isEmailValid = !isEmailTouched || /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email);
+  
+  $: isPhoneTouched = formData.phone.length > 0;
+  // Bardzo ogólny dający luz regex, sprawdzany tylko gdy ma minimum 9 znaków ciągiem
+  $: isPhoneValid = !isPhoneTouched || formData.phone.replace(/\D/g, '').length >= 9;
+
+
   // Lokalna domyślna walidacja przed wysłaniem do serwera (Zabezpieczenie przed edycją HTML w konsoli przeglądarki)
   function sanitizeInput(str) {
     if (!str) return "";
@@ -151,14 +176,13 @@
               class="text-[10px] font-mono font-bold text-cool-grey tracking-widest uppercase mb-2 group-focus-within:text-signal-orange transition-colors"
               >Imię i Nazwisko *</label
             >
-            <!-- Tylko litery, spacje i myślniki. Brak cyfr. Min 3 znaki, Max 100. -->
+            <!-- Svelte zajmuje się filtrowaniem przez block regexa w bloku $: -->
             <input
               type="text"
               id="name"
               required
               minlength="3"
               maxlength="100"
-              pattern="^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s\-]+$"
               title="Imię i nazwisko może zawierać tylko litery i myślniki"
               bind:value={formData.name}
               disabled={status === "loading"}
@@ -191,41 +215,47 @@
           >
             <label
               for="email"
-              class="text-[10px] font-mono font-bold text-cool-grey tracking-widest uppercase mb-2 group-focus-within:text-signal-orange transition-colors"
-              >Adres Email *</label
+              class="text-[10px] font-mono font-bold {isEmailValid ? 'text-cool-grey' : 'text-red-500'} tracking-widest uppercase mb-2 group-focus-within:{isEmailValid ? 'text-signal-orange' : 'text-red-500'} transition-colors flex justify-between"
             >
+              <span>Adres Email *</span>
+              {#if !isEmailValid}
+                <span class="text-red-500 font-bold hidden sm:inline">Nieprawidłowy Format</span>
+              {/if}
+            </label>
             <!-- Wymuszenie poprawnego formatu adresu email, max 100 znaków -->
             <input
               type="email"
               id="email"
               required
               maxlength="100"
-              pattern={"[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$"}
               title="Wprowadź poprawny adres email"
               bind:value={formData.email}
               disabled={status === "loading"}
-              class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold text-vantablack focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50"
+              class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold {isEmailValid ? 'text-vantablack' : 'text-red-600'} focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50"
               placeholder="kontakt@domena.pl"
             />
           </div>
           <div class="w-full md:w-1/2 flex flex-col py-6 px-4 md:px-8 group">
             <label
               for="phone"
-              class="text-[10px] font-mono font-bold text-cool-grey tracking-widest uppercase mb-2 group-focus-within:text-signal-orange transition-colors"
-              >Telefon Kontaktowy *</label
+              class="text-[10px] font-mono font-bold {isPhoneValid ? 'text-cool-grey' : 'text-red-500'} tracking-widest uppercase mb-2 group-focus-within:{isPhoneValid ? 'text-signal-orange' : 'text-red-500'} transition-colors flex justify-between"
             >
-            <!-- Numery telefonów, spacje, plus. Min 9 znaków, Max 20 znaków. -->
+              <span>Telefon Kontaktowy *</span>
+              {#if !isPhoneValid}
+                <span class="text-red-500 font-bold hidden sm:inline">Min. 9 cyfr</span>
+              {/if}
+            </label>
+            <!-- Real time phone limit/validation through svelte -->
             <input
               type="tel"
               id="phone"
               required
               minlength="9"
               maxlength="20"
-              pattern={"^[+]?[(]?[0-9]{3}[)]?[-\\s.]?[0-9]{3}[-\\s.]?[0-9]{3,6}$"}
               title="Wprowadź prawidłowy numer telefonu z użyciem cyfr"
               bind:value={formData.phone}
               disabled={status === "loading"}
-              class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold text-vantablack focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50"
+              class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold {isPhoneValid ? 'text-vantablack' : 'text-red-600'} focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50"
               placeholder="+48 000 000 000"
             />
           </div>
@@ -244,7 +274,6 @@
             type="text"
             id="nip"
             maxlength="20"
-            pattern={"^[a-zA-Z]{0,2}[0-9-]+$"}
             title="Wprowadź prawidłowy NIP firmy"
             bind:value={formData.nip}
             disabled={status === "loading"}
@@ -290,8 +319,8 @@
         >
           <button
             type="submit"
-            disabled={status === "loading"}
-            class="inline-flex items-center gap-3 bg-white border border-border-tech text-vantablack font-bold uppercase tracking-widest text-[10px] px-8 py-4 hover:border-signal-orange hover:text-signal-orange transition-colors disabled:opacity-50"
+            disabled={status === "loading" || !isEmailValid || !isPhoneValid || formData.name === '' || formData.email === '' || formData.phone === '' || formData.message.length < 10}
+            class="inline-flex items-center gap-3 bg-white border border-border-tech text-vantablack font-bold uppercase tracking-widest text-[10px] px-8 py-4 hover:border-signal-orange hover:text-signal-orange transition-colors disabled:opacity-50 disabled:cursor-not-allowed group-invalid:opacity-50"
           >
             {#if status === "loading"}
               <svg

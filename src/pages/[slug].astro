@@ -25,6 +25,25 @@ export async function getStaticPaths() {
 
 const { page } = Astro.props;
 
+// Pobieranie ustawień globalnych dla nagłówka i stopki ze Strapi (podobnie jak na stronie głównej index.astro)
+let globalSettings = null;
+try {
+  globalSettings = await fetchApi<any>({ endpoint: "global-setting" });
+} catch (e) {
+  console.error("Błąd pobierania ustawień globalnych w podstronie:", e);
+}
+
+const data = globalSettings?.data || {
+  phone_main: "+48 500 600 700",
+  email_contact: "kontakt@walizki-lublin.pl",
+  warehouse_address: "ul. Przykładowa 1\n20-000 Lublin",
+  hero_headline_line1: "HURTOWNIA BAGAŻU",
+  hero_headline_line2: "OD 2003",
+  hero_subheadline: "Zaopatrujemy liderów rynku detalicznego. Bezpieczeństwo. Terminowość. Marża.",
+  shipping_prepaid_pln: 18,
+  shipping_cod_pln: 26
+};
+
 // Skoro mamy CKEditor 5, to zmienna page.content zawiera gotowy HTML!
 const contentHtml = page.content || "<p>Brak treści dokumentu.</p>";
 ---
@@ -33,7 +52,7 @@ const contentHtml = page.content || "<p>Brak treści dokumentu.</p>";
   title={`${page.title} | Hurtownia Bagażu B2B`}
   description={`Dokument techniczny: ${page.title}`}
 >
-  <Header phone="+48 500 600 700" />
+  <Header phone={data.phone_main} />
   <main
     class="pt-[140px] pb-24 min-h-screen bg-ghost-white relative z-10 selection:bg-signal-orange selection:text-white"
   >
@@ -87,5 +106,5 @@ const contentHtml = page.content || "<p>Brak treści dokumentu.</p>";
       </div>
     </div>
   </main>
-  <Footer />
+  <Footer settings={data} />
 </Layout>
