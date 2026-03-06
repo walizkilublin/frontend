@@ -41,6 +41,63 @@
     overflow-x: hidden; /* Zapobiega scrollom przy animacjach wjazdu */
   }
   
+  /* Globalne reguły dla "brudnego" HTML wstrzykiwanego z zewnątrz (np. Strapi CKEditor) */
+  .strapi-content {
+    @apply block w-full text-vantablack overflow-hidden max-w-[1000px] mx-auto;
+  }
+  .strapi-content h1 {
+    @apply text-4xl md:text-5xl font-black uppercase tracking-tighter mt-16 mb-6;
+  }
+  .strapi-content h2 {
+    @apply text-3xl md:text-4xl font-black uppercase tracking-tighter mt-16 mb-6 pb-4 border-b border-border-tech;
+  }
+  .strapi-content h3 {
+    @apply text-2xl font-black uppercase tracking-tight mt-12 mb-4;
+  }
+  .strapi-content h4 {
+    @apply text-xl font-bold uppercase tracking-tight mt-8 mb-3;
+  }
+  .strapi-content p {
+    @apply text-base md:text-lg font-medium text-cool-grey leading-relaxed mb-8;
+  }
+  .strapi-content ul {
+    @apply list-disc list-inside mb-8 text-cool-grey font-medium space-y-3;
+  }
+  .strapi-content ol {
+    @apply list-decimal list-inside mb-8 text-cool-grey font-medium space-y-3;
+  }
+  .strapi-content li {
+    @apply text-base md:text-lg leading-relaxed;
+  }
+  .strapi-content li strong {
+    @apply text-vantablack;
+  }
+  .strapi-content a {
+    @apply text-signal-orange font-bold underline decoration-2 underline-offset-4 transition-colors duration-300;
+  }
+  .strapi-content a:hover {
+    @apply text-vantablack decoration-vantablack;
+  }
+  .strapi-content strong,
+  .strapi-content b {
+    @apply font-black text-vantablack bg-surface px-1;
+  }
+  .strapi-content blockquote {
+    @apply border-l-4 border-signal-orange pl-6 py-2 my-8 bg-surface/50;
+  }
+  .strapi-content blockquote p {
+    @apply text-vantablack font-bold m-0 italic;
+  }
+  .strapi-content table {
+    @apply w-full mb-12 border-collapse border-y-[3px] border-vantablack;
+  }
+  .strapi-content th {
+    @apply bg-surface/80 text-left font-black uppercase tracking-widest text-[10px] p-4 border-b border-border-tech;
+  }
+  .strapi-content td {
+    @apply p-4 border-b border-border-tech text-sm text-cool-grey font-medium;
+  }
+  
   /* Noise Overlay */
   body::after {
     content: "";
