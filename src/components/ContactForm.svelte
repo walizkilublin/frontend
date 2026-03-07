@@ -17,28 +17,53 @@
   $: {
     if (formData.name) {
       // Wyrzuca cyfry i znaki specjalne (zostawia tylko litery, spacje i myślniki)
-      formData.name = formData.name.replace(/[^a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s\-]/g, '');
+      formData.name = formData.name.replace(
+        /[^a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s\-]/g,
+        "",
+      );
     }
     if (formData.nip) {
       // NIP tylko wielkie litery i cyfry lub myślniki
-      formData.nip = formData.nip.replace(/[^a-zA-Z0-9\-]/g, '').toUpperCase();
+      formData.nip = formData.nip.replace(/[^a-zA-Z0-9\-]/g, "").toUpperCase();
     }
     if (formData.phone) {
       // Telefon tylko plus, nawiasy, cyfry, spacje i myślniki
-      formData.phone = formData.phone.replace(/[^\d\s+()\-]/g, '');
+      formData.phone = formData.phone.replace(/[^\d\s+()\-]/g, "");
     }
   }
 
+  // Flagowanie dotkniętych pól
+  let isNameTouched = false;
+  let isEmailTouched = false;
+  let isPhoneTouched = false;
+  let isMessageTouched = false;
+
   // Live Error States (Wizualny Feedback na żywo)
-  $: isEmailTouched = formData.email.length > 0;
-  $: isEmailValid = !isEmailTouched || /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email);
-  
-  $: isPhoneTouched = formData.phone.length > 0;
+  $: isEmailValid =
+    !formData.email || /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(formData.email);
+
   // Bardzo ogólny dający luz regex, sprawdzany tylko gdy ma minimum 9 znaków ciągiem
-  $: isPhoneValid = !isPhoneTouched || formData.phone.replace(/\D/g, '').length >= 9;
+  $: isPhoneValid =
+    !formData.phone || formData.phone.replace(/\D/g, "").length >= 9;
+  
+  // Tablica aktywnych komunikatów błędów
+  $: validationErrors = [
+    (!formData.name && isNameTouched) ? "Brakuje: Imię i Nazwisko" : null,
+    (!formData.email && isEmailTouched) ? "Brakuje: Adres Email" : (!isEmailValid ? "Błąd: Nieprawidłowy format Email" : null),
+    (!formData.phone && isPhoneTouched) ? "Brakuje: Telefon Kontaktowy" : (!isPhoneValid ? "Błąd: Telefon musi mieć min. 9 cyfr" : null),
+    (!formData.message && isMessageTouched) ? "Brakuje: Treść Zapytania" : (isMessageTouched && formData.message.length < 10 ? "Błąd: Treść zapytania za krótka (min. 10 znaków)" : null),
+    (!formData.privacyConsent) ? "Wymagane: Akceptacja Polityki Prywatności" : null
+  ].filter(Boolean); // Usuwa wartości null
 
-
-  // Lokalna domyślna walidacja przed wysłaniem do serwera (Zabezpieczenie przed edycją HTML w konsoli przeglądarki)
+  // Ogólna weryfikacja czy można wysłać
+  $: canSubmit = 
+    formData.name !== "" &&
+    formData.email !== "" &&
+    isEmailValid &&
+    formData.phone !== "" &&
+    isPhoneValid &&
+    formData.message.length >= 10 &&
+    formData.privacyConsent;
   function sanitizeInput(str) {
     if (!str) return "";
     return str.replace(/[<>]/g, "").trim();
@@ -158,7 +183,7 @@
         </button>
       </div>
     {:else}
-      <form on:submit|preventDefault={handleSubmit} class="flex flex-col">
+      <form on:submit|preventDefault={handleSubmit} class="flex flex-col" autocomplete="off">
         <div class="hidden" aria-hidden="true">
           <input
             type="text"
@@ -187,6 +212,7 @@
               maxlength="100"
               title="Imię i nazwisko może zawierać tylko litery i myślniki"
               bind:value={formData.name}
+              on:blur={() => isNameTouched = true}
               disabled={status === "loading"}
               class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold text-vantablack focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50"
               placeholder="Wprowadź dane"
@@ -217,11 +243,17 @@
           >
             <label
               for="email"
-              class="text-[10px] font-mono font-bold {isEmailValid ? 'text-cool-grey' : 'text-red-500'} tracking-widest uppercase mb-2 group-focus-within:{isEmailValid ? 'text-signal-orange' : 'text-red-500'} transition-colors flex justify-between"
+              class="text-[10px] font-mono font-bold {isEmailValid
+                ? 'text-cool-grey'
+                : 'text-red-500'} tracking-widest uppercase mb-2 group-focus-within:{isEmailValid
+                ? 'text-signal-orange'
+                : 'text-red-500'} transition-colors flex justify-between"
             >
               <span>Adres Email *</span>
               {#if !isEmailValid}
-                <span class="text-red-500 font-bold hidden sm:inline">Nieprawidłowy Format</span>
+                <span class="text-red-500 font-bold hidden sm:inline"
+                  >Nieprawidłowy Format</span
+                >
               {/if}
             </label>
             <!-- Wymuszenie poprawnego formatu adresu email, max 100 znaków -->
@@ -232,19 +264,28 @@
               maxlength="100"
               title="Wprowadź poprawny adres email"
               bind:value={formData.email}
+              on:blur={() => isEmailTouched = true}
               disabled={status === "loading"}
-              class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold {isEmailValid ? 'text-vantablack' : 'text-red-600'} focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50"
+              class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold {isEmailValid
+                ? 'text-vantablack'
+                : 'text-red-600'} focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50"
               placeholder="kontakt@domena.pl"
             />
           </div>
           <div class="w-full md:w-1/2 flex flex-col py-6 px-4 md:px-8 group">
             <label
               for="phone"
-              class="text-[10px] font-mono font-bold {isPhoneValid ? 'text-cool-grey' : 'text-red-500'} tracking-widest uppercase mb-2 group-focus-within:{isPhoneValid ? 'text-signal-orange' : 'text-red-500'} transition-colors flex justify-between"
+              class="text-[10px] font-mono font-bold {isPhoneValid
+                ? 'text-cool-grey'
+                : 'text-red-500'} tracking-widest uppercase mb-2 group-focus-within:{isPhoneValid
+                ? 'text-signal-orange'
+                : 'text-red-500'} transition-colors flex justify-between"
             >
               <span>Telefon Kontaktowy *</span>
               {#if !isPhoneValid}
-                <span class="text-red-500 font-bold hidden sm:inline">Min. 9 cyfr</span>
+                <span class="text-red-500 font-bold hidden sm:inline"
+                  >Min. 9 cyfr</span
+                >
               {/if}
             </label>
             <!-- Real time phone limit/validation through svelte -->
@@ -256,8 +297,11 @@
               maxlength="20"
               title="Wprowadź prawidłowy numer telefonu z użyciem cyfr"
               bind:value={formData.phone}
+              on:blur={() => isPhoneTouched = true}
               disabled={status === "loading"}
-              class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold {isPhoneValid ? 'text-vantablack' : 'text-red-600'} focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50"
+              class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold {isPhoneValid
+                ? 'text-vantablack'
+                : 'text-red-600'} focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50"
               placeholder="+48 000 000 000"
             />
           </div>
@@ -299,6 +343,7 @@
             minlength="10"
             maxlength="2000"
             bind:value={formData.message}
+            on:blur={() => isMessageTouched = true}
             disabled={status === "loading"}
             rows="3"
             class="w-full bg-transparent border-none p-0 text-sm md:text-base font-bold text-vantablack focus:outline-none focus:ring-0 placeholder:text-cool-grey/30 placeholder:font-medium disabled:opacity-50 resize-none"
@@ -320,26 +365,83 @@
           class="flex flex-col md:flex-row items-center justify-between border-t border-border-tech bg-ghost-white py-6 px-4 md:px-8 gap-6"
         >
           <div class="flex items-start gap-3 w-full md:w-auto">
-            <div class="relative flex items-center justify-center mt-1">
-              <input
-                type="checkbox"
-                id="privacyConsent"
-                required
-                bind:checked={formData.privacyConsent}
-                disabled={status === "loading"}
-                class="peer appearance-none w-5 h-5 border-2 border-border-tech bg-white checked:bg-signal-orange checked:border-signal-orange cursor-pointer transition-colors"
-              />
-              <svg class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+            <button
+              type="button"
+              id="privacyBtn"
+              role="checkbox"
+              aria-checked={formData.privacyConsent}
+              class="relative flex items-center justify-center mt-1 cursor-pointer shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-orange"
+              on:click={() => formData.privacyConsent = !formData.privacyConsent}
+              on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && (formData.privacyConsent = !formData.privacyConsent)}
+              disabled={status === "loading"}
+            >
+              <div
+                class="w-5 h-5 flex items-center justify-center border-2 transition-colors {formData.privacyConsent
+                  ? 'bg-signal-orange border-signal-orange'
+                  : 'bg-white border-border-tech'}"
+              >
+                {#if formData.privacyConsent}
+                  <svg
+                    class="w-3 h-3 text-white transition-opacity duration-200"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    ><path
+                      stroke-linecap="square"
+                      stroke-linejoin="miter"
+                      stroke-width="3"
+                      d="M5 13l4 4L19 7"
+                    ></path></svg
+                  >
+                {/if}
+              </div>
+            </button>
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+            <div
+              role="button"
+              tabindex="0"
+              class="text-[10px] font-medium text-cool-grey leading-tight max-w-[400px] cursor-pointer inline-block"
+              on:click={() => formData.privacyConsent = !formData.privacyConsent}
+            >
+              Akceptuję <a
+                href="https://walizkilublin.pl/polityka-prywatnosci/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="font-bold text-vantablack hover:text-signal-orange transition-colors"
+                on:click|stopPropagation>Politykę Prywatności</a
+              > oraz wyrażam zgodę na przetwarzanie podanych danych w celu obsługi
+              zapytania. *
             </div>
-            <label for="privacyConsent" class="text-[10px] font-medium text-cool-grey leading-tight max-w-[400px] cursor-pointer cursor-text">
-              Akceptuję <a href="https://walizkilublin.pl/polityka-prywatnosci/" target="_blank" rel="noopener noreferrer" class="font-bold text-vantablack hover:text-signal-orange transition-colors">Politykę Prywatności</a> oraz wyrażam zgodę na przetwarzanie podanych danych w celu obsługi zapytania. *
-            </label>
           </div>
 
-          <button
+          <div class="flex flex-col md:items-end w-full md:w-auto gap-4 mt-8 md:mt-0">
+            {#if !canSubmit}
+              <div class="flex flex-col gap-1 items-start md:items-end text-right">
+                <span class="text-[10px] font-mono font-bold text-signal-orange uppercase tracking-widest bg-signal-orange/10 px-2 py-1 mb-1">
+                  Do Uzupełnienia:
+                </span>
+                {#each validationErrors as error}
+                  <span class="text-[10px] font-bold text-cool-grey leading-none">
+                    • {error}
+                  </span>
+                {/each}
+              </div>
+            {:else}
+              <div class="flex flex-col gap-1 items-start md:items-end text-right">
+                <span class="text-[10px] font-mono font-bold text-[#00A550] uppercase tracking-widest bg-[#00A550]/10 px-2 py-1 mb-1">
+                  Gotowe do wysyłki
+                </span>
+                <span class="text-[10px] font-bold text-cool-grey leading-none">
+                  Wszystkie warunki formularza spełnione.
+                </span>
+              </div>
+            {/if}
+
+            <button
             type="submit"
-            disabled={status === "loading" || !isEmailValid || !isPhoneValid || formData.name === '' || formData.email === '' || formData.phone === '' || formData.message.length < 10 || !formData.privacyConsent}
-            class="inline-flex w-full md:w-auto items-center justify-center gap-3 bg-white border border-border-tech text-vantablack font-bold uppercase tracking-widest text-[10px] px-8 py-4 hover:border-signal-orange hover:text-signal-orange transition-colors disabled:opacity-50 disabled:cursor-not-allowed group-invalid:opacity-50 flex-shrink-0"
+            disabled={status === "loading" || !canSubmit}
+            class="inline-flex w-full md:w-auto items-center justify-center gap-3 bg-white border border-border-tech text-vantablack font-bold uppercase tracking-widest text-[10px] px-8 py-4 hover:border-signal-orange hover:text-signal-orange transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
           >
             {#if status === "loading"}
               <svg
@@ -376,7 +478,8 @@
                 ></path></svg
               >
             {/if}
-          </button>
+            </button>
+          </div>
         </div>
       </form>
     {/if}
