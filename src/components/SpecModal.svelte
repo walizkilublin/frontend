@@ -221,8 +221,7 @@
           
           <div class="mb-6">
             <div class="flex items-center gap-3 mb-2 flex-wrap">
-              <span class="bg-vantablack text-white text-[10px] font-mono font-bold px-2 py-1 tracking-widest uppercase">SKU: {product.model_sku || 'BRAK'}</span>
-              <span class="text-[10px] font-mono font-bold text-cool-grey tracking-widest uppercase">/ KAT: {product.category || product.gender || 'N/A'}</span>
+              <span class="text-[10px] font-mono font-bold text-cool-grey tracking-widest uppercase">KAT: {product.category || product.gender || 'N/A'}</span>
             </div>
             <h2 id="modal-title" class="text-3xl md:text-5xl font-black uppercase tracking-tighter text-vantablack leading-none">
               {product.name}

@@ -68,7 +68,7 @@
 
   // Funkcja generująca w 100% unikalny klucz dla bloku {#each}
   function getUniqueId(product, index) {
-    return `${product.itemType}-${product.documentId || product.id || index}-${product.model_sku || 'no-sku'}`;
+    return `${product.itemType}-${product.documentId || product.id || index}`;
   }
 
   // --- ZMIANA: OPTYMALIZACJA ZDJĘĆ I OBSŁUGA CLOUDINARY ---
@@ -172,7 +172,6 @@
 
           <div class="p-4 border-t border-border-tech bg-white flex justify-between items-end gap-4 mt-auto">
             <div class="flex flex-col">
-              <span class="text-[10px] font-mono font-bold text-cool-grey tracking-widest mb-1">SKU: {product.model_sku || 'BRAK'}</span>
               <h3 class="font-bold text-sm text-vantablack uppercase tracking-tight leading-tight line-clamp-2">
                 {product.name}
               </h3>
