@@ -10,6 +10,7 @@
     email: "",
     message: "",
     bot_field: "", // HONEYPOT
+    privacyConsent: false, // Privacy policy acceptance
   };
 
   // World-Class Real-Time Validation: Reaktywne blokowanie błędnych znaków podczas pisania
@@ -56,6 +57,7 @@
         phone: sanitizeInput(formData.phone),
         email: sanitizeInput(formData.email),
         message: sanitizeInput(formData.message),
+        privacyConsent: formData.privacyConsent,
         bot_field: formData.bot_field, // Honeypot musi pozostać nienaruszony (jeśli wypełniony to serwer i tak odrzuci)
       };
 
@@ -315,12 +317,29 @@
         {/if}
 
         <div
-          class="py-8 px-4 md:px-8 flex items-center justify-center md:justify-end bg-ghost-white"
+          class="flex flex-col md:flex-row items-center justify-between border-t border-border-tech bg-ghost-white py-6 px-4 md:px-8 gap-6"
         >
+          <div class="flex items-start gap-3 w-full md:w-auto">
+            <div class="relative flex items-center justify-center mt-1">
+              <input
+                type="checkbox"
+                id="privacyConsent"
+                required
+                bind:checked={formData.privacyConsent}
+                disabled={status === "loading"}
+                class="peer appearance-none w-5 h-5 border-2 border-border-tech bg-white checked:bg-signal-orange checked:border-signal-orange cursor-pointer transition-colors"
+              />
+              <svg class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="square" stroke-linejoin="miter" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <label for="privacyConsent" class="text-[10px] font-medium text-cool-grey leading-tight max-w-[400px] cursor-pointer cursor-text">
+              Akceptuję <a href="https://walizkilublin.pl/polityka-prywatnosci/" target="_blank" rel="noopener noreferrer" class="font-bold text-vantablack hover:text-signal-orange transition-colors">Politykę Prywatności</a> oraz wyrażam zgodę na przetwarzanie podanych danych w celu obsługi zapytania. *
+            </label>
+          </div>
+
           <button
             type="submit"
-            disabled={status === "loading" || !isEmailValid || !isPhoneValid || formData.name === '' || formData.email === '' || formData.phone === '' || formData.message.length < 10}
-            class="inline-flex items-center gap-3 bg-white border border-border-tech text-vantablack font-bold uppercase tracking-widest text-[10px] px-8 py-4 hover:border-signal-orange hover:text-signal-orange transition-colors disabled:opacity-50 disabled:cursor-not-allowed group-invalid:opacity-50"
+            disabled={status === "loading" || !isEmailValid || !isPhoneValid || formData.name === '' || formData.email === '' || formData.phone === '' || formData.message.length < 10 || !formData.privacyConsent}
+            class="inline-flex w-full md:w-auto items-center justify-center gap-3 bg-white border border-border-tech text-vantablack font-bold uppercase tracking-widest text-[10px] px-8 py-4 hover:border-signal-orange hover:text-signal-orange transition-colors disabled:opacity-50 disabled:cursor-not-allowed group-invalid:opacity-50 flex-shrink-0"
           >
             {#if status === "loading"}
               <svg
